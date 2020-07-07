@@ -19,27 +19,27 @@ class SWindow: NSWindow {
 
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
-
-    var window: SWindow!
+    var searchWindow: SWindow!
     
-
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        
         // Create the SwiftUI view that provides the window contents.
         let searchView = SearchView()
-
+        
         // Create the window and set the content view.
-        window = SWindow(
+        searchWindow = SWindow(
             contentRect: NSRect(x: 0, y: 0, width: 850, height: 500),
             styleMask: [.resizable],
             backing: .buffered, defer: false)
-        window.center()
-        window.setFrameAutosaveName("Main Window")
-        window.contentView = NSHostingView(rootView: searchView)
-        window.makeKeyAndOrderFront(nil)
-        window.isMovableByWindowBackground = true
-        window.titlebarAppearsTransparent = true
+        searchWindow.center()
+        searchWindow.setFrameAutosaveName("Main Window")
+        searchWindow.contentView = NSHostingView(rootView: searchView)
+        searchWindow.makeKeyAndOrderFront(true)
+        searchWindow.isMovableByWindowBackground = true
+        searchWindow.titlebarAppearsTransparent = true
+        
+
     }
-    
 
     func applicationWillTerminate(_ aNotification: Notification) {
         // Insert code here to tear down your application

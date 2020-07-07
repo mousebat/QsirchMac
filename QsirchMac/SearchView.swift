@@ -18,6 +18,23 @@ extension NSTextField {
     }
 }
 
+
+func openPreferencesWindow() {
+    var preferencesWindow: NSWindow!
+    let preferencesView = PreferencesView()
+    // Create the preferences window and set content
+    preferencesWindow = NSWindow(
+        contentRect: NSRect(x: 20, y: 20, width: 480, height: 300),
+        styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
+        backing: .buffered,
+        defer: false)
+    preferencesWindow.center()
+    preferencesWindow.setFrameAutosaveName("Preferences")
+    preferencesWindow.contentView = NSHostingView(rootView: preferencesView)
+    preferencesWindow.makeKeyAndOrderFront(nil)
+}
+
+
 // MARK: - Draw the Search Bar
 struct SearchBar: View {
     @State var searchField = ""
@@ -32,7 +49,12 @@ struct SearchBar: View {
                     .font(Font.system(size: 25, weight: .light, design: .default))
                 .fixedSize()
                 Spacer()
-                    
+                Button(action: {
+                    openPreferencesWindow()
+                    print("test")
+                }) {
+                    Text("􀍟").font(.largeTitle).foregroundColor(.primary)
+                }.buttonStyle(PlainButtonStyle())
             }
             .foregroundColor(.secondary)
             .padding([.top, .leading, .trailing], 20.0)
@@ -51,7 +73,6 @@ struct VolumeBar: View {
             HStack(alignment: .center, spacing: 20) {
                 Toggle(isOn: $thisToggle){
                    Text("This Drive")
-                      
                 }.toggleStyle(SwitchToggleStyle())
                 Divider().frame(height: 20)
                 Toggle(isOn: $thatToggle){
@@ -67,51 +88,73 @@ struct VolumeBar: View {
                 Spacer()
             }.padding(.horizontal)
         }
-        
     }
 }
-
+// MARK: - File Row
+struct FileRow: View {
+    var filename: FileNames
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text(filename.name).font(Font.system(size: 12, weight: .regular, design: .default))
+        }
+    }
+}
+// MARK: - File Detail
+struct FileDetail: View {
+    var fileDetail: FileNames
+    var body: some View {
+        VStack {
+            HStack {
+                Text(fileDetail.name).font(.title)
+            }
+        }
+        .frame(minWidth: 300, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity).background(Color.white)
+    }
+}
+// MARK: - Set up the dummy data, must contain UUID to be hashable/identifiable
+struct FileNames: Identifiable {
+    var id = UUID()
+    var name:String
+}
 // MARK: - Main Search View
 struct SearchView: View {
-    @State var searchField = ""
+    let fileNames = [
+        FileNames(name: "File Name 1"),
+        FileNames(name: "File Name 2"),
+        FileNames(name: "File Name 3"),
+        FileNames(name: "File Name 4"),
+        FileNames(name: "File Name 5"),
+        FileNames(name: "File Name 6"),
+        FileNames(name: "File Name 7"),
+        FileNames(name: "File Name 8"),
+        FileNames(name: "File Name 9"),
+        FileNames(name: "File Name 10"),
+    ]
+    @State var searchField = " "
     var body: some View {
         VStack {
             SearchBar()
             VolumeBar()
-            HSplitView() {
-                List() {
-                    Spacer()
-                    ForEach (0..<51) { i in
-                        // Navigation Link?
-                        HStack(alignment: .center) {
-                            //Insert Icon for File Here
-                            Text("􀈿").font(Font.system(size:22)).foregroundColor(.primary)
-                            VStack(alignment: .leading) {
-                                Text("File Name \(i)").font(Font.system(size: 16, weight: .semibold, design: .default))
-                                Text("File Path \(i)").font(Font.system(size: 12, weight: .light, design: .default))
-                            }
-                        }.background(Color.white)
-                        Divider()
+            NavigationView {
+                List(fileNames) { file in
+                    NavigationLink(destination: FileDetail(fileDetail: file)) {
+                        FileRow(filename: file)
                     }
                 }.frame(minWidth: 500, minHeight: 400)
-                
-                List() {
-                    //Display Selected File Details Here
-                    Text("Content")
-                    Text("Content")
-                    Text("Content")
-                    Text("Content")
-                }.frame(minWidth: 300, idealWidth: 300)
-            }.background(Color.white)
+            }
         }
     }
 }
 
 
-
+// MARK: - Preview Loader
 struct SearchView_Previews: PreviewProvider {
     static var previews: some View {
-        SearchView()
+        VStack {
+        SearchBar()
+        VolumeBar()
+        //SearchView()
+        }
     }
 }
 
