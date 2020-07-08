@@ -20,6 +20,24 @@ class SWindow: NSWindow {
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
     var searchWindow: SWindow!
+    var preferencesWindow: NSWindow!    // << here
+
+    @objc func openPreferencesWindow() {
+        if nil == preferencesWindow {      // create once !!
+            let preferencesView = PreferencesView()
+            // Create the preferences window and set content
+            preferencesWindow = NSWindow(
+                contentRect: NSRect(x: 20, y: 20, width: 480, height: 300),
+                styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
+                backing: .buffered,
+                defer: false)
+            preferencesWindow.center()
+            preferencesWindow.setFrameAutosaveName("Preferences")
+            preferencesWindow.isReleasedWhenClosed = false
+            preferencesWindow.contentView = NSHostingView(rootView: preferencesView)
+        }
+        preferencesWindow.makeKeyAndOrderFront(nil)
+    }
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         
