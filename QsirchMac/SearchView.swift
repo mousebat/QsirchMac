@@ -50,8 +50,7 @@ struct SearchBar: View {
                 .fixedSize()
                 Spacer()
                 Button(action: {
-                    openPreferencesWindow()
-                    print("test")
+                    NSApp.sendAction(#selector(AppDelegate.openPreferencesWindow), to: nil, from:nil)
                 }) {
                     Text("􀍟").font(.largeTitle).foregroundColor(.primary)
                 }.buttonStyle(PlainButtonStyle())

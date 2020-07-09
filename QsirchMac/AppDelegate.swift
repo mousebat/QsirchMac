@@ -16,30 +16,45 @@ class SWindow: NSWindow {
     }
 }
 
-
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
+    
+    
+    
+    
     var searchWindow: SWindow!
+    
     var preferencesWindow: NSWindow!    // << here
+    
+    var settings = UserSettings()
 
+    
     @objc func openPreferencesWindow() {
         if nil == preferencesWindow {      // create once !!
             let preferencesView = PreferencesView()
             // Create the preferences window and set content
             preferencesWindow = NSWindow(
                 contentRect: NSRect(x: 20, y: 20, width: 480, height: 300),
-                styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
+                styleMask: [.titled, .miniaturizable, .fullSizeContentView],
                 backing: .buffered,
                 defer: false)
             preferencesWindow.center()
             preferencesWindow.setFrameAutosaveName("Preferences")
             preferencesWindow.isReleasedWhenClosed = false
-            preferencesWindow.contentView = NSHostingView(rootView: preferencesView)
+            preferencesWindow.contentView = NSHostingView(rootView: preferencesView.environmentObject(settings))
         }
         preferencesWindow.makeKeyAndOrderFront(nil)
     }
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        
+        /* Remove Defaults whilst debugging
+        let defaults = UserDefaults.standard
+        let dictionary = defaults.dictionaryRepresentation()
+        dictionary.keys.forEach { key in
+            defaults.removeObject(forKey: key)
+        }
+        */
         
         // Create the SwiftUI view that provides the window contents.
         let searchView = SearchView()
@@ -51,7 +66,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             backing: .buffered, defer: false)
         searchWindow.center()
         searchWindow.setFrameAutosaveName("Main Window")
-        searchWindow.contentView = NSHostingView(rootView: searchView)
+        searchWindow.contentView = NSHostingView(rootView: searchView.environmentObject(settings))
         searchWindow.makeKeyAndOrderFront(true)
         searchWindow.isMovableByWindowBackground = true
         searchWindow.titlebarAppearsTransparent = true
