@@ -8,6 +8,11 @@
 
 import Foundation
 
+// MARK: - LoginRequest
+struct LoginRequest : Codable {
+    var account = String()
+    var password = String()
+}
 // MARK: - LoginReturn
 struct LoginReturn: Codable {
     let isAdmin, qqsSid, userName: String
