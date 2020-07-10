@@ -46,6 +46,24 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         preferencesWindow.makeKeyAndOrderFront(nil)
     }
     
+    @objc func openSearchWindow() {
+        if nil == searchWindow {
+            let searchView = SearchView()
+            // Create the search window and set content
+            searchWindow = SWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 850, height: 500),
+                styleMask: [.resizable],
+                backing: .buffered, defer: false)
+            searchWindow.center()
+            searchWindow.setFrameAutosaveName("Main Window")
+            searchWindow.isReleasedWhenClosed = false
+            searchWindow.isMovableByWindowBackground = true
+            searchWindow.titlebarAppearsTransparent = true
+            searchWindow.contentView = NSHostingView(rootView: searchView.environmentObject(settings))
+        }
+        searchWindow.makeKeyAndOrderFront(true)
+    }
+    
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         
         /* Remove Defaults whilst debugging
@@ -56,22 +74,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         */
         
-        // Create the SwiftUI view that provides the window contents.
-        let searchView = SearchView()
+        if (UserDefaults.standard.object(forKey: "hostname") == nil
+            || UserDefaults.standard.object(forKey: "username") == nil
+            || UserDefaults.standard.object(forKey: "password") == nil
+            || UserDefaults.standard.object(forKey: "port") == nil) {
+            openPreferencesWindow()
         
-        // Create the window and set the content view.
-        searchWindow = SWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 850, height: 500),
-            styleMask: [.resizable],
-            backing: .buffered, defer: false)
-        searchWindow.center()
-        searchWindow.setFrameAutosaveName("Main Window")
-        searchWindow.contentView = NSHostingView(rootView: searchView.environmentObject(settings))
-        searchWindow.makeKeyAndOrderFront(true)
-        searchWindow.isMovableByWindowBackground = true
-        searchWindow.titlebarAppearsTransparent = true
-        
-
+        } else {
+            openSearchWindow()
+        }
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {

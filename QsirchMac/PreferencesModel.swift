@@ -24,18 +24,18 @@ struct LoginReturn: Codable {
     }
 }
 // MARK: - LoginError
-struct LoginError: Codable {
-    let error: LError
+struct ReturnedError: Codable {
+    let error: Error
 }
-
 // MARK: - Error
-struct LError: Codable {
+struct Error: Codable {
     let message: String
     let code: Int
 }
 // MARK: - Search Results
 struct SearchResults: Codable {
     var items: [Item]
+    var total: Int
 }
 
 // MARK: - Items from Search Results
@@ -50,14 +50,15 @@ struct Item: Codable {
         case created, modified
     }
 }
-
-
-
+// MARK: - Store User Settings in EnvironmentObject
 class UserSettings: ObservableObject {
-    @Published var hostname:String?
-    @Published var username:String?
-    @Published var password:String?
-    @Published var port:String?
+    @Published var hostname:String = UserDefaults.standard.string(forKey: "hostname") ?? ""
+    @Published var username:String = UserDefaults.standard.string(forKey: "username") ?? ""
+    @Published var password:String = UserDefaults.standard.string(forKey: "password") ?? ""
+    @Published var port:String = UserDefaults.standard.string(forKey: "port") ?? ""
+    @Published var token:String = UserDefaults.standard.string(forKey: "token") ?? ""
 }
+
+
 
 

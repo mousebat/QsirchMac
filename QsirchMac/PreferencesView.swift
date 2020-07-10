@@ -66,11 +66,11 @@ struct PreferencesView: View {
         return validity
     }
     fileprivate func save() {
+        
         if formValidate(){
-            print("Valid Form")
             if (rememberMe){
-                print("Remember Checked")
                 UserDefaults.standard.set(hostnameField, forKey: "hostname")
+                settings.hostname = hostnameField
                 UserDefaults.standard.set(usernameField, forKey: "username")
                 UserDefaults.standard.set(passwordField, forKey: "password")
                 if portField.isEmpty {
@@ -79,8 +79,9 @@ struct PreferencesView: View {
                     UserDefaults.standard.set(portField, forKey: "port")
                 }
                 // Add Close Window
+                NSApplication.shared.keyWindow?.close()
+                NSApp.sendAction(#selector(AppDelegate.openSearchWindow), to: nil, from:nil)
             } else {
-                print("Forget Me")
                 UserDefaults.standard.removeObject(forKey: "hostname")
                 settings.hostname = hostnameField
                 UserDefaults.standard.removeObject(forKey: "username")
@@ -94,6 +95,8 @@ struct PreferencesView: View {
                    settings.port = portField
                 }
                 // Add Close Window
+                NSApplication.shared.keyWindow?.close()
+                NSApp.sendAction(#selector(AppDelegate.openSearchWindow), to: nil, from:nil)
             }
         }
     }
@@ -149,7 +152,7 @@ struct PreferencesView: View {
                 Section {
                     HStack {
                         Text("Port").frame(minWidth: 65 , alignment: .trailing)
-                        TextField("Port", value: $portField, formatter: portFormatter).frame(width: 60)
+                        TextField("443", value: $portField, formatter: portFormatter).frame(width: 60)
                         Spacer()
                         Toggle(isOn: $rememberMe) {
                             Text("Remember Details")
@@ -162,16 +165,30 @@ struct PreferencesView: View {
                             Spacer()
                             Button(action: {
                                 if(self.formValidate()) {
-                                    print("Test Connection Begin")
+                                    logout(hostname: self.hostnameField, port: self.portField) { (LogoutReturn) in
+                                        if (LogoutReturn != "200") {
+                                            self.connectionOutput = LogoutReturn
+                                        }
+                                    }
+                                    login(hostname: self.hostnameField, port: self.portField, username: self.usernameField, password: self.passwordField) { (LoginReturn, ReturnedError, localisedError) in
+                                        
+                                        if (LoginReturn != nil) {
+                                            self.qqsSID = (LoginReturn?.qqsSid)! as String
+                                            self.connectionOutput = "User \(LoginReturn!.userName) logged in successfully"
+                                        }
+                                        if ReturnedError != nil {
+                                            self.connectionOutput = (ReturnedError?.error.message)! as String
+                                        }
+                                        if (localisedError != nil) {
+                                            self.connectionOutput = localisedError! as String
+                                        }
+                                    }
                                 }
-                                
                             }) {
                                 Text("Test")
                             }
                             Button(action: {
-                                if(self.formValidate()) {
-                                    print("Saved")
-                                }
+                                self.save()
                             }) {
                                 Text("Save")
                             }
@@ -185,7 +202,7 @@ struct PreferencesView: View {
                         VStack {
                             HStack {
                                 Spacer()
-                                Text(connectionOutput)
+                                Text(connectionOutput).fixedSize(horizontal: true, vertical: false)
                                 Spacer()
                             }
                         }

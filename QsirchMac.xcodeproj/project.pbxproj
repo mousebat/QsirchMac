@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8B60D7F924B89136002B8806 /* URLEncode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B60D7F824B89136002B8806 /* URLEncode.swift */; };
 		8B74ECD724B4BB330007BF5B /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B74ECD624B4BB330007BF5B /* PreferencesView.swift */; };
 		8BE8147524B72A0E0029BC62 /* PreferencesModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BE8147424B72A0E0029BC62 /* PreferencesModel.swift */; };
 		8BE8147724B7462F0029BC62 /* Requests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BE8147624B7462F0029BC62 /* Requests.swift */; };
@@ -37,6 +38,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		8B60D7F824B89136002B8806 /* URLEncode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLEncode.swift; sourceTree = "<group>"; };
 		8B74ECD624B4BB330007BF5B /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
 		8BE8147424B72A0E0029BC62 /* PreferencesModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesModel.swift; sourceTree = "<group>"; };
 		8BE8147624B7462F0029BC62 /* Requests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Requests.swift; sourceTree = "<group>"; };
@@ -108,6 +110,7 @@
 				8BF0927C24AF79D300D94B5E /* SearchView.swift */,
 				8B74ECD624B4BB330007BF5B /* PreferencesView.swift */,
 				8BE8147624B7462F0029BC62 /* Requests.swift */,
+				8B60D7F824B89136002B8806 /* URLEncode.swift */,
 				8BE8147424B72A0E0029BC62 /* PreferencesModel.swift */,
 				8BF0927E24AF79D300D94B5E /* Assets.xcassets */,
 				8BF0928324AF79D300D94B5E /* Main.storyboard */,
@@ -278,6 +281,7 @@
 				8BE8147524B72A0E0029BC62 /* PreferencesModel.swift in Sources */,
 				8BE8147724B7462F0029BC62 /* Requests.swift in Sources */,
 				8BF0927D24AF79D300D94B5E /* SearchView.swift in Sources */,
+				8B60D7F924B89136002B8806 /* URLEncode.swift in Sources */,
 				8B74ECD724B4BB330007BF5B /* PreferencesView.swift in Sources */,
 				8BF0927B24AF79D300D94B5E /* AppDelegate.swift in Sources */,
 			);

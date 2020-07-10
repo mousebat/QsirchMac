@@ -19,37 +19,42 @@ extension NSTextField {
 }
 
 
-func openPreferencesWindow() {
-    var preferencesWindow: NSWindow!
-    let preferencesView = PreferencesView()
-    // Create the preferences window and set content
-    preferencesWindow = NSWindow(
-        contentRect: NSRect(x: 20, y: 20, width: 480, height: 300),
-        styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
-        backing: .buffered,
-        defer: false)
-    preferencesWindow.center()
-    preferencesWindow.setFrameAutosaveName("Preferences")
-    preferencesWindow.contentView = NSHostingView(rootView: preferencesView)
-    preferencesWindow.makeKeyAndOrderFront(nil)
-}
 
+// https://www.ioscreator.com/tutorials/swiftui-json-list-tutorial - THIS COULD HELP with getting codable struct from model to the list?
+
+/*
+ Get the set credentials
+
+search(hostname: self.hostnameField, port: self.portField, searchstring: "P11121", token: self.qqsSID) { (SearchResults, ReturnedError, OtherErrors) in
+    print(SearchResults!)
+}
+ */
 
 // MARK: - Draw the Search Bar
 struct SearchBar: View {
+    @EnvironmentObject var settings: UserSettings
+    // On searchfield change call function?
+    
     @State var searchField = ""
     var body: some View {
         VStack {
             HStack(alignment: .center, spacing: 10) {
+                Text("\(settings.hostname)")
                 Text("􀊫").font(.largeTitle).foregroundColor(.primary)
-                TextField("Search", text: $searchField)
+                // On stop typing call the search function!
+                TextField("Search", text: $searchField, onCommit: {
+                    search(hostname: self.settings.hostname, port: self.settings.port, searchstring: self.searchField, token: self.settings.token ) { (SearchResults, ReturnedError, OtherErrors) in
+                        print(SearchResults!)
+                    }
+                })
                     .textFieldStyle(PlainTextFieldStyle())
                     .foregroundColor(.primary)
                     .background(Color.clear)
                     .font(Font.system(size: 25, weight: .light, design: .default))
-                .fixedSize()
+                    .fixedSize()
                 Spacer()
                 Button(action: {
+                    NSApplication.shared.keyWindow?.close()
                     NSApp.sendAction(#selector(AppDelegate.openPreferencesWindow), to: nil, from:nil)
                 }) {
                     Text("􀍟").font(.largeTitle).foregroundColor(.primary)
@@ -91,20 +96,20 @@ struct VolumeBar: View {
 }
 // MARK: - File Row
 struct FileRow: View {
-    var filename: FileNames
+    var filename: SearchResults
     var body: some View {
         VStack(alignment: .leading) {
-            Text(filename.name).font(Font.system(size: 12, weight: .regular, design: .default))
+            Text("filename.items").font(Font.system(size: 12, weight: .regular, design: .default))
         }
     }
 }
 // MARK: - File Detail
 struct FileDetail: View {
-    var fileDetail: FileNames
+    var fileDetail: SearchResults
     var body: some View {
         VStack {
             HStack {
-                Text(fileDetail.name).font(.title)
+                Text(" ").font(.title)
             }
         }
         .frame(minWidth: 300, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity).background(Color.white)
@@ -117,30 +122,26 @@ struct FileNames: Identifiable {
 }
 // MARK: - Main Search View
 struct SearchView: View {
-    let fileNames = [
-        FileNames(name: "File Name 1"),
-        FileNames(name: "File Name 2"),
-        FileNames(name: "File Name 3"),
-        FileNames(name: "File Name 4"),
-        FileNames(name: "File Name 5"),
-        FileNames(name: "File Name 6"),
-        FileNames(name: "File Name 7"),
-        FileNames(name: "File Name 8"),
-        FileNames(name: "File Name 9"),
-        FileNames(name: "File Name 10"),
-    ]
     @State var searchField = " "
+    @State var results = [SearchResults]()
     var body: some View {
         VStack {
+            
             SearchBar()
+            
             VolumeBar()
+            // IF data exists show this:
             NavigationView {
-                List(fileNames) { file in
+                // List Data
+                List(results) { file in
+                    /*
                     NavigationLink(destination: FileDetail(fileDetail: file)) {
                         FileRow(filename: file)
-                    }
+                    }*/
+                    Text("file.path")
                 }.frame(minWidth: 500, minHeight: 400)
             }
+            //
         }
     }
 }
