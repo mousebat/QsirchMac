@@ -19,15 +19,13 @@ class SWindow: NSWindow {
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
     
-    
-    
-    
     var searchWindow: SWindow!
     
-    var preferencesWindow: NSWindow!    // << here
+    var preferencesWindow: NSWindow!
     
     var settings = UserSettings()
-
+    var networkmanager = NetworkManager()
+    
     
     @objc func openPreferencesWindow() {
         if nil == preferencesWindow {      // create once !!
@@ -41,7 +39,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             preferencesWindow.center()
             preferencesWindow.setFrameAutosaveName("Preferences")
             preferencesWindow.isReleasedWhenClosed = false
-            preferencesWindow.contentView = NSHostingView(rootView: preferencesView.environmentObject(settings))
+            preferencesWindow.contentView = NSHostingView(rootView: preferencesView.environmentObject(settings).environmentObject(networkmanager))
         }
         preferencesWindow.makeKeyAndOrderFront(nil)
     }
@@ -59,7 +57,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             searchWindow.isReleasedWhenClosed = false
             searchWindow.isMovableByWindowBackground = true
             searchWindow.titlebarAppearsTransparent = true
-            searchWindow.contentView = NSHostingView(rootView: searchView.environmentObject(settings))
+            searchWindow.contentView = NSHostingView(rootView: searchView.environmentObject(settings).environmentObject(networkmanager))
         }
         searchWindow.makeKeyAndOrderFront(true)
     }
@@ -81,6 +79,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             openPreferencesWindow()
         
         } else {
+            // attempt login
+                // if fail - open preferences window
+            /*
+            networkmanager.login(hostname: UserDefaults.standard.object(forKey: "hostname"),
+                                 port: UserDefaults.standard.object(forKey: "port"),
+                                 username: UserDefaults.standard.object(forKey: "username"),
+                                 password: UserDefaults.standard.object(forKey: "password"),
+                                 completion: <#T##(LoginReturn?, ReturnedError?, String?) -> ()#>)
+ */
             openSearchWindow()
         }
     }

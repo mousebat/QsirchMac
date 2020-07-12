@@ -7,11 +7,13 @@
 //
 
 import Foundation
+import Combine
+
 
 // MARK: - LoginRequest
 struct LoginRequest : Codable {
-    var account = String()
-    var password = String()
+    let account: String
+    let password: String
 }
 // MARK: - LoginReturn
 struct LoginReturn: Codable {
@@ -32,33 +34,36 @@ struct Error: Codable {
     let message: String
     let code: Int
 }
-// MARK: - Search Results
+// MARK: - SearchResults
 struct SearchResults: Codable {
-    var items: [Item]
-    var total: Int
+    //let id = UUID()
+    let items: [Item]
+    let total: Int
 }
 
-// MARK: - Items from Search Results
-struct Item: Codable {
-    var size: Int
-    var path, name, itemExtension, created: String
-    var modified: String
-
+// MARK: - Item
+struct Item: Codable, Identifiable {
+    let id = UUID()
+    let size: Int
+    let title: String
+    let content: String?
+    let path, name: String
+    let itemExtension: String?
+    let created, modified: String
+    
     enum CodingKeys: String, CodingKey {
-        case size, path, name
+        case id, size, title, content, path, name
         case itemExtension = "extension"
         case created, modified
     }
 }
+
+
 // MARK: - Store User Settings in EnvironmentObject
 class UserSettings: ObservableObject {
     @Published var hostname:String = UserDefaults.standard.string(forKey: "hostname") ?? ""
     @Published var username:String = UserDefaults.standard.string(forKey: "username") ?? ""
     @Published var password:String = UserDefaults.standard.string(forKey: "password") ?? ""
     @Published var port:String = UserDefaults.standard.string(forKey: "port") ?? ""
-    @Published var token:String = UserDefaults.standard.string(forKey: "token") ?? ""
+    @Published var token:String = ""
 }
-
-
-
-

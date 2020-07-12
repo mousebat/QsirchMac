@@ -23,6 +23,7 @@ struct PreferencesView: View {
     
     
     @EnvironmentObject var settings: UserSettings
+    @EnvironmentObject var networkManager: NetworkManager
     
     @State var hostnameField: String = UserDefaults.standard.string(forKey: "hostname") ?? ""
     @State var hostnameInvalid:Bool = false
@@ -33,55 +34,39 @@ struct PreferencesView: View {
     @State var passwordField: String = UserDefaults.standard.string(forKey: "password") ?? ""
     @State var passwordInvalid:Bool = false
     
-    @State var portField: String = UserDefaults.standard.string(forKey: "port") ?? "443"
+    @State var portField: String = UserDefaults.standard.string(forKey: "port") ?? ""
     
     @State var rememberMe:Bool = true
     
     @State var connectionOutput: String = ""
     
-    @State var qqsSID: String = ""
-    
-    
     // Check vital fields and return true or activate warnings
     fileprivate func formValidate() -> Bool {
         var validity:Bool = true
-        if self.hostnameField.isEmpty {
-            self.hostnameInvalid = true
-        } else {
-            self.hostnameInvalid = false
-        }
-        if self.usernameField.isEmpty {
-            self.usernameInvalid = true
-        } else {
-            self.usernameInvalid = false
-        }
-        if self.passwordField.isEmpty {
-            self.passwordInvalid = true
-        } else {
-            self.passwordInvalid = false
-        }
-        if (self.hostnameField.isEmpty || self.usernameField.isEmpty || self.passwordField.isEmpty) {
-            validity = false
-        }
+        if hostnameField.isEmpty { hostnameInvalid = true } else { hostnameInvalid = false }
+        if usernameField.isEmpty { usernameInvalid = true } else { usernameInvalid = false }
+        if passwordField.isEmpty { passwordInvalid = true } else { passwordInvalid = false }
+        if portField.isEmpty { portField = "443" }
+        if (hostnameField.isEmpty || usernameField.isEmpty || passwordField.isEmpty) { validity = false }
         return validity
     }
     fileprivate func save() {
-        
         if formValidate(){
             if (rememberMe){
+                // TODO: - if login successfull {
                 UserDefaults.standard.set(hostnameField, forKey: "hostname")
                 settings.hostname = hostnameField
                 UserDefaults.standard.set(usernameField, forKey: "username")
+                settings.username = usernameField
                 UserDefaults.standard.set(passwordField, forKey: "password")
-                if portField.isEmpty {
-                    UserDefaults.standard.set("443", forKey: "port")
-                } else {
-                    UserDefaults.standard.set(portField, forKey: "port")
-                }
-                // Add Close Window
+                settings.password = passwordField
+                UserDefaults.standard.set(portField, forKey: "port")
+                settings.port = portField
                 NSApplication.shared.keyWindow?.close()
                 NSApp.sendAction(#selector(AppDelegate.openSearchWindow), to: nil, from:nil)
+                //} TODO...
             } else {
+                // TODO: - if login successfull {
                 UserDefaults.standard.removeObject(forKey: "hostname")
                 settings.hostname = hostnameField
                 UserDefaults.standard.removeObject(forKey: "username")
@@ -89,14 +74,10 @@ struct PreferencesView: View {
                 UserDefaults.standard.removeObject(forKey: "password")
                 settings.password = passwordField
                 UserDefaults.standard.removeObject(forKey: "port")
-                if portField.isEmpty {
-                    settings.port = "443"
-                } else {
-                   settings.port = portField
-                }
-                // Add Close Window
+                settings.port = portField
                 NSApplication.shared.keyWindow?.close()
                 NSApp.sendAction(#selector(AppDelegate.openSearchWindow), to: nil, from:nil)
+                //} TODO...
             }
         }
     }
@@ -165,22 +146,23 @@ struct PreferencesView: View {
                             Spacer()
                             Button(action: {
                                 if(self.formValidate()) {
-                                    logout(hostname: self.hostnameField, port: self.portField) { (LogoutReturn) in
+                                    self.networkManager.logout(hostname: self.hostnameField, port: self.portField) { (LogoutReturn) in
                                         if (LogoutReturn != "200") {
                                             self.connectionOutput = LogoutReturn
                                         }
                                     }
-                                    login(hostname: self.hostnameField, port: self.portField, username: self.usernameField, password: self.passwordField) { (LoginReturn, ReturnedError, localisedError) in
-                                        
-                                        if (LoginReturn != nil) {
-                                            self.qqsSID = (LoginReturn?.qqsSid)! as String
-                                            self.connectionOutput = "User \(LoginReturn!.userName) logged in successfully"
+                                    self.networkManager.login(hostname: self.hostnameField, port: self.portField, username: self.usernameField, password: self.passwordField) { (LoginReturn, ReturnedError, HardError) in
+                                        if let LoginReturn = LoginReturn {
+                                            DispatchQueue.main.async {
+                                                self.settings.token = LoginReturn.qqsSid
+                                            }
+                                            self.connectionOutput = "User \(LoginReturn.userName) logged in successfully"
                                         }
-                                        if ReturnedError != nil {
-                                            self.connectionOutput = (ReturnedError?.error.message)! as String
+                                        if let ReturnedError = ReturnedError {
+                                            self.connectionOutput = ReturnedError.error.message
                                         }
-                                        if (localisedError != nil) {
-                                            self.connectionOutput = localisedError! as String
+                                        if let HardError = HardError {
+                                            self.connectionOutput = HardError
                                         }
                                     }
                                 }
