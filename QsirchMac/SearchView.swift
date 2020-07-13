@@ -52,8 +52,8 @@ struct SearchBar: View {
         }
     }
 }
-// MARK: - Draw the Volume Bar
-struct VolumeBar: View {
+// MARK: - Draw the Volume Bar - needs to be replaced with single selection UI also add a results drop down
+struct OptionBar: View {
     @State private var thisToggle:Bool = false
     @State private var thatToggle:Bool = false
     @State private var theotherToggle:Bool = false
@@ -111,16 +111,17 @@ struct SearchView: View {
     @EnvironmentObject var networkManager:NetworkManager
     @State var searchField = " "
     
+    
+    
     var body: some View {
         VStack {
             
             SearchBar()
             
-            VolumeBar()
+            OptionBar()
             // IF data exists show this:
             if (networkManager.filesToDisplay == true){
                 NavigationView {
-                    
                     // List Data
                     List(networkManager.FileList!.items) { file in
                         NavigationLink(destination: FileDetail(fileDetail: file)) {

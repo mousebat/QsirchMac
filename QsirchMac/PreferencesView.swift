@@ -146,11 +146,6 @@ struct PreferencesView: View {
                             Spacer()
                             Button(action: {
                                 if(self.formValidate()) {
-                                    self.networkManager.logout(hostname: self.hostnameField, port: self.portField) { (LogoutReturn) in
-                                        if (LogoutReturn != "200") {
-                                            self.connectionOutput = LogoutReturn
-                                        }
-                                    }
                                     self.networkManager.login(hostname: self.hostnameField, port: self.portField, username: self.usernameField, password: self.passwordField) { (LoginReturn, ReturnedError, HardError) in
                                         if let LoginReturn = LoginReturn {
                                             DispatchQueue.main.async {
