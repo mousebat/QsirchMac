@@ -27,17 +27,12 @@ struct PreferencesView: View {
     
     @State var hostnameField: String = UserDefaults.standard.string(forKey: "hostname") ?? ""
     @State var hostnameInvalid:Bool = false
-    
     @State var usernameField: String = UserDefaults.standard.string(forKey: "username") ?? ""
     @State var usernameInvalid:Bool = false
-    
     @State var passwordField: String = UserDefaults.standard.string(forKey: "password") ?? ""
     @State var passwordInvalid:Bool = false
-    
     @State var portField: String = UserDefaults.standard.string(forKey: "port") ?? ""
-    
     @State var rememberMe:Bool = true
-    
     @State var connectionOutput: String = ""
     
     // Check vital fields and return true or activate warnings
@@ -53,27 +48,28 @@ struct PreferencesView: View {
     fileprivate func save() {
         if formValidate(){
             if (rememberMe){
+                let defaults = UserDefaults.standard
                 // TODO: - if login successfull {
-                UserDefaults.standard.set(hostnameField, forKey: "hostname")
+                defaults.set(hostnameField, forKey: "hostname")
                 settings.hostname = hostnameField
-                UserDefaults.standard.set(usernameField, forKey: "username")
+                defaults.set(usernameField, forKey: "username")
                 settings.username = usernameField
-                UserDefaults.standard.set(passwordField, forKey: "password")
+                defaults.set(passwordField, forKey: "password")
                 settings.password = passwordField
-                UserDefaults.standard.set(portField, forKey: "port")
+                defaults.set(portField, forKey: "port")
                 settings.port = portField
                 NSApplication.shared.keyWindow?.close()
                 NSApp.sendAction(#selector(AppDelegate.openSearchWindow), to: nil, from:nil)
                 //} TODO...
             } else {
-                // TODO: - if login successfull {
-                UserDefaults.standard.removeObject(forKey: "hostname")
+                let defaults = UserDefaults.standard
+                let dictionary = defaults.dictionaryRepresentation()
+                dictionary.keys.forEach { key in
+                    defaults.removeObject(forKey: key)
+                }
                 settings.hostname = hostnameField
-                UserDefaults.standard.removeObject(forKey: "username")
                 settings.username = usernameField
-                UserDefaults.standard.removeObject(forKey: "password")
                 settings.password = passwordField
-                UserDefaults.standard.removeObject(forKey: "port")
                 settings.port = portField
                 NSApplication.shared.keyWindow?.close()
                 NSApp.sendAction(#selector(AppDelegate.openSearchWindow), to: nil, from:nil)
@@ -165,7 +161,24 @@ struct PreferencesView: View {
                                 Text("Test")
                             }
                             Button(action: {
-                                self.save()
+                                if(self.formValidate()) {
+                                    self.networkManager.login(hostname: self.hostnameField, port: self.portField, username: self.usernameField, password: self.passwordField) { (LoginReturn, ReturnedError, HardError) in
+                                        if let LoginReturn = LoginReturn {
+                                            DispatchQueue.main.async {
+                                                self.settings.token = LoginReturn.qqsSid
+                                                self.save()
+                                            }
+                                            self.connectionOutput = "User \(LoginReturn.userName) logged in successfully"
+                                        }
+                                        if let ReturnedError = ReturnedError {
+                                            self.connectionOutput = ReturnedError.error.message
+                                        }
+                                        if let HardError = HardError {
+                                            self.connectionOutput = HardError
+                                        }
+                                    }
+                                }
+                                
                             }) {
                                 Text("Save")
                             }

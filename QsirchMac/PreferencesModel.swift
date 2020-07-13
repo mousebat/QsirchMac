@@ -35,8 +35,8 @@ struct Error: Codable {
     let code: Int
 }
 // MARK: - SearchResults
-struct SearchResults: Codable {
-    //let id = UUID()
+struct SearchResults: Codable, Identifiable {
+    let id = UUID()
     let items: [Item]
     let total: Int
 }
@@ -57,7 +57,15 @@ struct Item: Codable, Identifiable {
         case created, modified
     }
 }
-
+// MARK: - DrivesAvailable
+struct DrivesAvailable: Codable {
+    var items: [Drives]
+    var total: Int
+}
+// MARK: - Drives
+struct Drives: Codable {
+    var name: String
+}
 
 // MARK: - Store User Settings in EnvironmentObject
 class UserSettings: ObservableObject {

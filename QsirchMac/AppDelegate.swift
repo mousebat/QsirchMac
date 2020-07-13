@@ -37,7 +37,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 backing: .buffered,
                 defer: false)
             preferencesWindow.center()
-            preferencesWindow.setFrameAutosaveName("Preferences")
+            //preferencesWindow.setFrameAutosaveName("Preferences")
             preferencesWindow.isReleasedWhenClosed = false
             preferencesWindow.contentView = NSHostingView(rootView: preferencesView.environmentObject(settings).environmentObject(networkmanager))
         }
@@ -53,7 +53,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 styleMask: [.resizable],
                 backing: .buffered, defer: false)
             searchWindow.center()
-            searchWindow.setFrameAutosaveName("Main Window")
+            //searchWindow.setFrameAutosaveName("Main Window")
             searchWindow.isReleasedWhenClosed = false
             searchWindow.isMovableByWindowBackground = true
             searchWindow.titlebarAppearsTransparent = true
@@ -64,39 +64,35 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         
-        /* Remove Defaults whilst debugging
         let defaults = UserDefaults.standard
-        let dictionary = defaults.dictionaryRepresentation()
-        dictionary.keys.forEach { key in
-            defaults.removeObject(forKey: key)
-        }
-        */
         
-        if (UserDefaults.standard.object(forKey: "hostname") == nil
-            || UserDefaults.standard.object(forKey: "username") == nil
-            || UserDefaults.standard.object(forKey: "password") == nil
-            || UserDefaults.standard.object(forKey: "port") == nil) {
-            openPreferencesWindow()
-        
+        if let hostname = defaults.string(forKey: "hostname"),
+            let port = defaults.string(forKey: "port"),
+            let username = defaults.string(forKey: "username"),
+            let password = defaults.string(forKey: "password") {
+            networkmanager.login(hostname: hostname, port: port, username: username, password: password) { (LoginReturn, ReturnedError, HardError) in
+                if let LoginReturn = LoginReturn {
+                    DispatchQueue.main.async {
+                        self.settings.token = LoginReturn.qqsSid
+                        self.openSearchWindow()
+                    }
+                }
+                if let ReturnedError = ReturnedError, let HardError = HardError {
+                    self.networkmanager.HardError = HardError
+                    self.networkmanager.ReturnedErrors = ReturnedError
+                    self.openPreferencesWindow()
+                }
+            }
         } else {
-            // attempt login
-                // if fail - open preferences window
-            /*
-            networkmanager.login(hostname: UserDefaults.standard.object(forKey: "hostname"),
-                                 port: UserDefaults.standard.object(forKey: "port"),
-                                 username: UserDefaults.standard.object(forKey: "username"),
-                                 password: UserDefaults.standard.object(forKey: "password"),
-                                 completion: <#T##(LoginReturn?, ReturnedError?, String?) -> ()#>)
- */
-            openSearchWindow()
+            self.openPreferencesWindow()
         }
     }
-
+    
     func applicationWillTerminate(_ aNotification: Notification) {
         // Insert code here to tear down your application
     }
-
-    
-    
-
 }
+    
+    
+
+

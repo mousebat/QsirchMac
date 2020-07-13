@@ -60,23 +60,40 @@ struct OptionBar: View {
     var body: some View {
         VStack {
             Divider()
-            HStack(alignment: .center, spacing: 20) {
-                Toggle(isOn: $thisToggle){
-                   Text("This Drive")
-                }.toggleStyle(SwitchToggleStyle())
-                Divider().frame(height: 20)
-                Toggle(isOn: $thatToggle){
-                   Text("That Drive")
-                      
-                }.toggleStyle(SwitchToggleStyle())
-                Divider().frame(height: 20)
-                Toggle(isOn: $theotherToggle){
-                   Text("The Other Drive")
-                      
-                }.toggleStyle(SwitchToggleStyle())
-                Divider().frame(height: 20)
+            HStack(alignment: .center) {
+                ScrollView(.horizontal) {
+                    Picker(selection: .constant(0), label: Text("Select Drive")) {
+                        Text("All").tag(0)
+                        Text("Work").tag(1)
+                        Text("Production").tag(2)
+                        Text("Admin").tag(3)
+                    }.pickerStyle(SegmentedPickerStyle()).labelsHidden().frame(alignment: .leading)
+                }
                 Spacer()
+                Picker(selection: .constant(0), label: Text("Results")) {
+                    Text("Results").tag(0)
+                    Text("25").tag(1)
+                    Text("50").tag(2)
+                    Text("100").tag(3)
+                    Text("200").tag(4)
+                    }.pickerStyle(PopUpButtonPickerStyle()).labelsHidden().frame(width: 85)
+                Divider().frame(height: 20)
+                Picker(selection: .constant(0), label: Text("Sort By")) {
+                    Text("Sort By").tag(0)
+                    Text("Relevance").tag(1)
+                    Text("Name").tag(2)
+                    Text("Size").tag(3)
+                    Text("Extension").tag(4)
+                    Text("Modified").tag(4)
+                }.pickerStyle(PopUpButtonPickerStyle()).labelsHidden().frame(width: 85)
+                Divider().frame(height: 20)
+                Picker(selection: .constant(0), label: Text("Sort 􀄬")) {
+                    Text("Sort 􀄬").tag(0)
+                    Text("Desc 􀄩").tag(1)
+                    Text("Asc 􀄨").tag(2)
+                }.pickerStyle(PopUpButtonPickerStyle()).labelsHidden().frame(width: 85)
             }.padding(.horizontal)
+            Divider()
         }
     }
 }
@@ -85,8 +102,10 @@ struct FileRow: View {
     var fileRow: Item
     var body: some View {
         VStack(alignment: .leading) {
-            Text(fileRow.name).font(Font.system(size: 12, weight: .regular, design: .default))
-            Text(fileRow.path).font(Font.system(size: 12, weight: .regular, design: .default))
+            HStack {
+                Text(fileRow.name).font(Font.system(size: 12, weight: .regular, design: .default))
+                Text(fileRow.path).font(Font.system(size: 12, weight: .regular, design: .default))
+            }
         }
     }
 }
@@ -94,56 +113,56 @@ struct FileRow: View {
 struct FileDetail: View {
     var fileDetail: Item
     var body: some View {
-        VStack {
-            HStack {
-                VStack {
-                    Text(fileDetail.name).font(.title)
-                    Text(fileDetail.created).font(Font.system(size: 12, weight: .regular, design: .default))
-                }
-            }
+        HStack {
+            VStack {
+                Text(fileDetail.name).font(.title)
+                Text(fileDetail.created).font(Font.system(size: 12, weight: .regular, design: .default))
+            }.background(Color.white).frame(minWidth:250, idealWidth:300, maxHeight: .infinity)
         }
-        .frame(minWidth: 300, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity).background(Color.white)
     }
 }
-
-// MARK: - Main Search View
-struct SearchView: View {
+// MARK: - Search Results
+struct ResultsView: View {
     @EnvironmentObject var networkManager:NetworkManager
-    @State var searchField = " "
-    
-    
-    
     var body: some View {
         VStack {
             
-            SearchBar()
-            
-            OptionBar()
-            // IF data exists show this:
             if (networkManager.filesToDisplay == true){
                 NavigationView {
-                    // List Data
                     List(networkManager.FileList!.items) { file in
                         NavigationLink(destination: FileDetail(fileDetail: file)) {
                             FileRow(fileRow: file)
                         }
                     }
-                }.frame(minWidth: 500, minHeight: 400)
+                }.frame(minHeight:300).background(Color.white)
+            }
+            if (networkManager.FileList?.total == 0) {
+                HStack {
+                    Text("No Results Found")
+                }
             }
                 
         }
     }
 }
-                //Text(networkManager.FileList?.items[0].name ?? "null")
-
-// MARK: - Preview Loader
-struct SearchView_Previews: PreviewProvider {
-    static var previews: some View {
+// MARK: - Main Search View
+struct SearchView: View {
+    //@EnvironmentObject var networkManager:NetworkManager
+    @State var searchField = " "
+    
+    var body: some View {
         VStack {
-        SearchBar()
-        VolumeBar()
-        //SearchView()
+            SearchBar()
+            OptionBar()
+            ResultsView()
         }
     }
 }
 
+// MARK: - Preview Loader
+struct SearchView_Previews: PreviewProvider {
+    static var previews: some View {
+        SearchView().environmentObject(NetworkManager()).environmentObject(UserSettings())
+        
+    }
+}

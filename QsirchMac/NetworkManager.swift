@@ -17,12 +17,14 @@ class NetworkManager: ObservableObject {
     @Published var ReturnedErrors:ReturnedError?
     
     @Published var LoginReturned:LoginReturn?
+    @Published var HardError:String?
 
     // MARK: - Login Method
     func login(hostname:String, port:String, username:String, password:String, completion: @escaping (LoginReturn?,ReturnedError?,String?) ->() ) {
         let semaphore = DispatchSemaphore(value: 1)
         guard let loginURL = URL(string: "https://\(hostname):\(port)/qsirch/static/api/login") else { return }
         DispatchQueue.global().async {
+            //Begin Logout
             semaphore.wait()
             self.logout(hostname: hostname, port: port) { (LogoutReturn) in
                 if (LogoutReturn != "200") {
@@ -31,6 +33,8 @@ class NetworkManager: ObservableObject {
                 }
                 semaphore.signal()
             }
+            //End Logout
+            //Begin Login
             semaphore.wait()
             var request = URLRequest(url: loginURL)
             request.httpMethod = "POST"
@@ -49,11 +53,9 @@ class NetworkManager: ObservableObject {
                     switch httpResponse?.statusCode {
                         case 200:
                             let loginResponse = try JSONDecoder().decode(LoginReturn.self, from: data)
-    //                        self.LoginReturned = try JSONDecoder().decode(LoginReturn.self, from: data)
                             completion(loginResponse,nil,nil)
                         case 400:
                             let loginResponse = try JSONDecoder().decode(ReturnedError.self, from: data)
-    //                        self.ReturnedErrors = try JSONDecoder().decode(ReturnedError.self, from: data)
                             completion(nil,loginResponse,nil)
                         default:
                             completion(nil,nil,"Unknown Error")
@@ -64,6 +66,12 @@ class NetworkManager: ObservableObject {
             }
             task.resume()
             semaphore.signal()
+            //End Login
+            //Begin Drive Aquisition
+            
+                
+            //End Drive Aquisition
+            
         }
     }
     // MARK: - Logout Method
@@ -110,7 +118,12 @@ class NetworkManager: ObservableObject {
                     let fileList = try! JSONDecoder().decode(SearchResults.self, from: data)
                     DispatchQueue.main.async {
                         self.FileList = fileList
-                        self.filesToDisplay = true
+                        print(fileList)
+                        if self.FileList!.total > 0 {
+                            self.filesToDisplay = true
+                        } else {
+                            self.filesToDisplay = false
+                        }
                     }
                 case 400...500:
                     let returnedErrors = try JSONDecoder().decode(ReturnedError.self, from: data)
@@ -126,6 +139,31 @@ class NetworkManager: ObservableObject {
         }
         task.resume()
     }
+    // MARK: - Need to get available drives
+    func drivesAvailable(hostname:String, port:String, completion: @escaping (DrivesAvailable?,ReturnedError?) -> () ) {
+        guard let listDirURL = URL(string: "https://\(hostname):\(port)/qsirch/static/list-dirs") else { return }
+        var request = URLRequest(url: listDirURL)
+        request.httpMethod = "GET"
+        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
+            do {
+                guard let data = data else { return }
+                let httpResponse = response as? HTTPURLResponse
+                switch httpResponse!.statusCode as Int {
+                case 200:
+                    let driveList = try! JSONDecoder().decode(DrivesAvailable.self, from: data)
+                    completion(driveList,nil)
+                case 400...500:
+                    let returnedErrors = try JSONDecoder().decode(ReturnedError.self, from: data)
+                    completion(nil,returnedErrors)
+                    default: break
+                }
+            } catch {
+                print(error)
+            }
+        }
+        task.resume()
+    }
+    
 }
 
 
