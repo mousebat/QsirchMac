@@ -20,25 +20,67 @@ struct SearchBar: View {
     @EnvironmentObject var settings: UserSettings
     @EnvironmentObject var networkManager:NetworkManager
     
+    // Drive Selector
+    @State var drive = "All"
+    private var driveProxy:Binding<String> {
+        Binding<String>(get: { self.drive }, set: {
+            self.drive = $0
+            self.commitSearch()
+        })
+    }
+    // Results Selector
+    @State var results = "25"
+    private var resultsProxy:Binding<String> {
+        Binding<String>(get: { self.results }, set: {
+            self.results = $0
+            self.commitSearch()
+        })
+    }
+    // Sort By Selector
+    @State var sortby = "relevance"
+    private var sortbyProxy:Binding<String> {
+        Binding<String>(get: { self.sortby }, set: {
+            self.sortby = $0
+            self.commitSearch()
+        })
+    }
+    // Sort Direction Selector
+    @State var sortdir:String = "default"
+    private var sortdirProxy:Binding<String> {
+        Binding<String>(get: { self.sortdir }, set: {
+            self.sortdir = $0
+            self.commitSearch()
+        })
+    }
+    
+    
     @State var searchField = ""
     
+    private func commitSearch() -> Void {
+        if (self.searchField != "") {
+            self.networkManager.search(hostname: self.settings.hostname,
+                port: self.settings.port,
+                searchstring: self.searchField,
+                token: self.settings.token, path: self.drive, results: self.results, sortby: self.sortby, sortdir: self.sortdir)
+        }
+    }
+        
     var body: some View {
         VStack {
             HStack(alignment: .center, spacing: 10) {
-                Text("􀊫").font(.largeTitle).foregroundColor(.primary)
+                Text("􀊫").font(.largeTitle).foregroundColor(.primary).onTapGesture {
+                    self.commitSearch()
+                }
                 // On stop typing call the search function!
                 TextField("Search", text: $searchField, onCommit: {
-                    self.networkManager.search(hostname: self.settings.hostname,
-                                               port: self.settings.port,
-                                               searchstring: self.searchField,
-                                               token: self.settings.token) })
+                        self.commitSearch()
+                     })
                     .textFieldStyle(PlainTextFieldStyle())
                     .foregroundColor(.primary)
                     .background(Color.clear)
                     .font(Font.system(size: 25, weight: .light, design: .default))
                     .fixedSize()
                 Spacer()
-                
                 Button(action: {
                     NSApplication.shared.keyWindow?.close()
                     NSApp.sendAction(#selector(AppDelegate.openPreferencesWindow), to: nil, from:nil)
@@ -49,75 +91,77 @@ struct SearchBar: View {
             .foregroundColor(.secondary)
             .padding([.top, .leading, .trailing], 20.0)
             .background(Color.clear)
-        }
-    }
-}
-// MARK: - Draw the Volume Bar - needs to be replaced with single selection UI also add a results drop down
-struct OptionBar: View {
-    @State private var thisToggle:Bool = false
-    @State private var thatToggle:Bool = false
-    @State private var theotherToggle:Bool = false
-    var body: some View {
-        VStack {
             Divider()
             HStack(alignment: .center) {
-                ScrollView(.horizontal) {
-                    Picker(selection: .constant(0), label: Text("Select Drive")) {
-                        Text("All").tag(0)
-                        Text("Work").tag(1)
-                        Text("Production").tag(2)
-                        Text("Admin").tag(3)
-                    }.pickerStyle(SegmentedPickerStyle()).labelsHidden().frame(alignment: .leading)
+                if (networkManager.drivesToDisplay == true){
+                //    List(networkManager.DrivesList!.items) { drive in
+                    ScrollView(.horizontal) {
+                        Picker(selection: driveProxy, label: Text("Select Drive")) {
+                            Text("All").tag("All")
+                            ForEach(networkManager.DrivesList!.items){ drivename in
+                                Text(drivename.name).tag(drivename.name)
+                            }
+                        }.pickerStyle(SegmentedPickerStyle()).labelsHidden().frame(alignment: .leading)
+                    }
                 }
                 Spacer()
-                Picker(selection: .constant(0), label: Text("Results")) {
-                    Text("Results").tag(0)
-                    Text("25").tag(1)
-                    Text("50").tag(2)
-                    Text("100").tag(3)
-                    Text("200").tag(4)
+                Picker(selection: resultsProxy, label: Text("Results")) {
+                    Text("Results").tag("25")
+                    Text("50").tag("50")
+                    Text("100").tag("100")
+                    Text("200").tag("200")
                     }.pickerStyle(PopUpButtonPickerStyle()).labelsHidden().frame(width: 85)
                 Divider().frame(height: 20)
-                Picker(selection: .constant(0), label: Text("Sort By")) {
-                    Text("Sort By").tag(0)
-                    Text("Relevance").tag(1)
-                    Text("Name").tag(2)
-                    Text("Size").tag(3)
-                    Text("Extension").tag(4)
-                    Text("Modified").tag(4)
+                Picker(selection: sortbyProxy, label: Text("Sort By")) {
+                    Text("Sort By").tag("relevance")
+                    Text("Name").tag("name")
+                    Text("Size").tag("size")
+                    Text("Extension").tag("extension")
+                    Text("Modified").tag("modified")
                 }.pickerStyle(PopUpButtonPickerStyle()).labelsHidden().frame(width: 85)
                 Divider().frame(height: 20)
-                Picker(selection: .constant(0), label: Text("Sort 􀄬")) {
-                    Text("Sort 􀄬").tag(0)
-                    Text("Desc 􀄩").tag(1)
-                    Text("Asc 􀄨").tag(2)
+                Picker(selection: sortdirProxy, label: Text("Sort 􀄬")) {
+                    Text("Sort 􀄬").tag("default")
+                    Text("Desc 􀄩").tag("desc")
+                    Text("Asc 􀄨").tag("asc")
                 }.pickerStyle(PopUpButtonPickerStyle()).labelsHidden().frame(width: 85)
             }.padding(.horizontal)
             Divider()
         }
     }
 }
+
 // MARK: - File Row
 struct FileRow: View {
     var fileRow: Item
     var body: some View {
-        VStack(alignment: .leading) {
-            HStack {
-                Text(fileRow.name).font(Font.system(size: 12, weight: .regular, design: .default))
-                Text(fileRow.path).font(Font.system(size: 12, weight: .regular, design: .default))
+        VStack {
+            HStack(alignment: .center) {
+                VStack(alignment: .leading) {
+                    Text(fileRow.name).font(Font.system(size: 12, weight: .regular, design: .default))
+                    Text(fileRow.path+"/"+fileRow.name).font(Font.system(size: 10, weight: .regular, design: .default))
+                }
             }
-        }
+        }.frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
     }
 }
 // MARK: - File Detail
 struct FileDetail: View {
     var fileDetail: Item
     var body: some View {
-        HStack {
-            VStack {
-                Text(fileDetail.name).font(.title)
-                Text(fileDetail.created).font(Font.system(size: 12, weight: .regular, design: .default))
-            }.background(Color.white).frame(minWidth:250, idealWidth:300, maxHeight: .infinity)
+        VStack {
+            if (fileDetail.itemExtension) != nil {
+                Text(fileDetail.name + "." + fileDetail.itemExtension!).font(Font.system(size: 14, weight: .semibold, design: .default))
+            } else {
+                Text(fileDetail.name).font(Font.system(size: 14, weight: .semibold, design: .default))
+            }
+            Text(fileDetail.created).font(Font.system(size: 12, weight: .regular, design: .default))
+        }.frame(minWidth:250, idealWidth:300, maxWidth:.infinity, maxHeight: .infinity).background(Color.white).padding().onTapGesture {
+            if (self.fileDetail.itemExtension != nil) {
+                NSWorkspace.shared.selectFile("/Volumes/\(self.fileDetail.path)/\(self.fileDetail.name).\(String(describing: self.fileDetail.itemExtension))", inFileViewerRootedAtPath: "")
+            } else {
+                NSWorkspace.shared.selectFile("/Volumes/\(self.fileDetail.path)/\(self.fileDetail.name)", inFileViewerRootedAtPath: "")
+            }
         }
     }
 }
@@ -126,7 +170,6 @@ struct ResultsView: View {
     @EnvironmentObject var networkManager:NetworkManager
     var body: some View {
         VStack {
-            
             if (networkManager.filesToDisplay == true){
                 NavigationView {
                     List(networkManager.FileList!.items) { file in
@@ -141,6 +184,11 @@ struct ResultsView: View {
                     Text("No Results Found")
                 }
             }
+            if (networkManager.ReturnedErrors?.error.message != nil) {
+                HStack {
+                    Text("\((networkManager.ReturnedErrors?.error.message)!)")
+                }
+            }
                 
         }
     }
@@ -153,7 +201,6 @@ struct SearchView: View {
     var body: some View {
         VStack {
             SearchBar()
-            OptionBar()
             ResultsView()
         }
     }
@@ -163,6 +210,5 @@ struct SearchView: View {
 struct SearchView_Previews: PreviewProvider {
     static var previews: some View {
         SearchView().environmentObject(NetworkManager()).environmentObject(UserSettings())
-        
     }
 }

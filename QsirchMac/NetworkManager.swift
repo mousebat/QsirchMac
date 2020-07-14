@@ -14,6 +14,9 @@ class NetworkManager: ObservableObject {
     @Published var FileList:SearchResults?
     @Published var filesToDisplay = false
     
+    @Published var DrivesList:DrivesAvailable?
+    @Published var drivesToDisplay = false
+    
     @Published var ReturnedErrors:ReturnedError?
     
     @Published var LoginReturned:LoginReturn?
@@ -63,13 +66,43 @@ class NetworkManager: ObservableObject {
                 } catch {
                     completion(nil,nil,error.localizedDescription)
                 }
+                semaphore.signal()
             }
             task.resume()
-            semaphore.signal()
+            
+            semaphore.wait()
             //End Login
             //Begin Drive Aquisition
+            guard let listDirURL = URL(string: "https://\(hostname):\(port)/qsirch/static/api/list-dirs") else { return }
+            var driveRequest = URLRequest(url: listDirURL)
+            driveRequest.httpMethod = "GET"
+            let driveTask = URLSession.shared.dataTask(with: driveRequest) { (data, response, error) in
+                do {
+                    guard let data = data else { return }
+                    let httpResponse = response as? HTTPURLResponse
+                    switch httpResponse!.statusCode as Int {
+                    case 200:
+                        let driveList = try! JSONDecoder().decode(DrivesAvailable.self, from: data)
+                        DispatchQueue.main.async {
+                            self.DrivesList = driveList
+                            if self.DrivesList!.total > 0 {
+                                self.drivesToDisplay = true
+                            } else {
+                                self.drivesToDisplay = false
+                            }
+                        }
+                    case 400...500:
+                        let returnedErrors = try JSONDecoder().decode(ReturnedError.self, from: data)
+                        print(returnedErrors)
+                        default: break
+                    }
+                } catch {
+                    print(error)
+                }
+                semaphore.signal()
+            }
+            driveTask.resume()
             
-                
             //End Drive Aquisition
             
         }
@@ -91,22 +124,32 @@ class NetworkManager: ObservableObject {
         task.resume()
     }
     // MARK: - Search Method
-    func search(hostname:String, port:String, searchstring:String, token:String) {
-        // Open dispatch queue
-        // if login token exists
-            // try search
-                // if search returns not logged in error
-                    // Display not logged in error
+    func search(hostname:String, port:String, searchstring:String, token:String, path:String, results:String, sortby:String, sortdir:String) {
         //Safely Construct URL
         var components = URLComponents()
         components.scheme = "https"
         components.host = hostname
         components.port = Int(port)
         components.path = "/qsirch/static/api/search"
+        
+        
+        
+        //components.queryItems = [queryItemToken, queryItemQuery]
         components.queryItems = [
             URLQueryItem(name: "q", value: searchstring.stringByAddingPercentEncodingForFormData(plusForSpace: true)),
             URLQueryItem(name: "auth_token", value: token)
         ]
+        if (path != "All") {
+            components.queryItems!.append(URLQueryItem(name: "path", value: path))
+        }
+        components.queryItems!.append(URLQueryItem(name: "limit", value: results))
+        components.queryItems!.append(URLQueryItem(name: "sort_by", value: sortby))
+        var sorteddir = sortdir
+        if (sortdir == "default") {
+            sorteddir = "desc"
+        }
+        components.queryItems!.append(URLQueryItem(name: "sort_dir", value: sorteddir))
+        
         // Make sure URL actually got constructed
         guard let searchURL = components.url else { return }
         let task = URLSession.shared.dataTask(with: searchURL) { (data, response, error) in
@@ -118,7 +161,6 @@ class NetworkManager: ObservableObject {
                     let fileList = try! JSONDecoder().decode(SearchResults.self, from: data)
                     DispatchQueue.main.async {
                         self.FileList = fileList
-                        print(fileList)
                         if self.FileList!.total > 0 {
                             self.filesToDisplay = true
                         } else {
@@ -139,31 +181,6 @@ class NetworkManager: ObservableObject {
         }
         task.resume()
     }
-    // MARK: - Need to get available drives
-    func drivesAvailable(hostname:String, port:String, completion: @escaping (DrivesAvailable?,ReturnedError?) -> () ) {
-        guard let listDirURL = URL(string: "https://\(hostname):\(port)/qsirch/static/list-dirs") else { return }
-        var request = URLRequest(url: listDirURL)
-        request.httpMethod = "GET"
-        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-            do {
-                guard let data = data else { return }
-                let httpResponse = response as? HTTPURLResponse
-                switch httpResponse!.statusCode as Int {
-                case 200:
-                    let driveList = try! JSONDecoder().decode(DrivesAvailable.self, from: data)
-                    completion(driveList,nil)
-                case 400...500:
-                    let returnedErrors = try JSONDecoder().decode(ReturnedError.self, from: data)
-                    completion(nil,returnedErrors)
-                    default: break
-                }
-            } catch {
-                print(error)
-            }
-        }
-        task.resume()
-    }
-    
 }
 
 

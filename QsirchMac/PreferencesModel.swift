@@ -59,12 +59,13 @@ struct Item: Codable, Identifiable {
 }
 // MARK: - DrivesAvailable
 struct DrivesAvailable: Codable {
-    var items: [Drives]
-    var total: Int
+    let items: [Drives]
+    let total: Int
 }
 // MARK: - Drives
-struct Drives: Codable {
-    var name: String
+struct Drives: Codable, Identifiable {
+    let id = UUID()
+    let name: String
 }
 
 // MARK: - Store User Settings in EnvironmentObject
@@ -74,4 +75,5 @@ class UserSettings: ObservableObject {
     @Published var password:String = UserDefaults.standard.string(forKey: "password") ?? ""
     @Published var port:String = UserDefaults.standard.string(forKey: "port") ?? ""
     @Published var token:String = ""
+    @Published var driveSelected:String = ""
 }

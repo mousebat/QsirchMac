@@ -75,6 +75,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     DispatchQueue.main.async {
                         self.settings.token = LoginReturn.qqsSid
                         self.openSearchWindow()
+                        
                     }
                 }
                 if let ReturnedError = ReturnedError, let HardError = HardError {
