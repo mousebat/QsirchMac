@@ -131,9 +131,6 @@ class NetworkManager: ObservableObject {
         components.host = hostname
         components.port = Int(port)
         components.path = "/qsirch/static/api/search"
-        
-        
-        
         //components.queryItems = [queryItemToken, queryItemQuery]
         components.queryItems = [
             URLQueryItem(name: "q", value: searchstring.stringByAddingPercentEncodingForFormData(plusForSpace: true)),

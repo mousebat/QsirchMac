@@ -18,20 +18,9 @@ extension NSTextField {
     }
 }
 
-
 let previewGenerator = QLThumbnailGenerator()
 
 
-func iconGrabber(path:String) -> NSImage! {
-    if let rep = NSWorkspace.shared.icon(forFile: "/Volumes/\(path)")
-        // Make sure to change the Width/Height for row size!
-        .bestRepresentation(for: NSRect(x: 0, y: 0, width: 1024, height: 1024), context: nil, hints: nil) {
-        let image = NSImage(size: rep.size)
-        image.addRepresentation(rep)
-        return image
-    }
-    return nil
-}
 
 func pathBuilder(path:String, name:String, ext:String?) -> String? {
     if let ext = ext {
@@ -43,6 +32,23 @@ func pathBuilder(path:String, name:String, ext:String?) -> String? {
         return String(returnURL.absoluteString).removingPercentEncoding
     }
 }
+
+func iconGrabber(path:String, name:String, ext:String?) -> NSImage! {
+    if let builtPath = pathBuilder(path: path, name: name, ext: ext) {
+        if let rep = NSWorkspace.shared.icon(forFile: "/Volumes/\(builtPath)")
+            // Make sure to change the Width/Height for row size!
+            .bestRepresentation(for: NSRect(x: 0, y: 0, width: 32, height: 32), context: nil, hints: nil) {
+            let image = NSImage(size: rep.size)
+            image.addRepresentation(rep)
+            return image
+        } else {
+            return nil
+        }
+    } else {
+        return nil
+    }
+}
+
 
 func checkDriveMounted(path:String) -> Bool {
     //let fullPath = URL(string: path)
@@ -146,7 +152,6 @@ struct SearchBar: View {
             Divider()
             HStack(alignment: .center) {
                 if (networkManager.drivesToDisplay == true){
-                //    List(networkManager.DrivesList!.items) { drive in
                     ScrollView(.horizontal) {
                         Picker(selection: driveProxy, label: Text("Select Drive")) {
                             Text("All").tag("All")
@@ -185,27 +190,25 @@ struct SearchBar: View {
 
 // MARK: - File Row
 struct FileRow: View {
+    
     var fileRow: Item
     var body: some View {
-        VStack {
-            HStack(alignment: .center) {
-                /*
-                if checkDriveMounted(pathBuilder(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension)) {
-                    if FileManager.default.fileExists(atPath: pathBuilder(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension)! ) {
-                        NSWorkspace.shared.selectFile(pathBuilder(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension), inFileViewerRootedAtPath: "")
+        HStack(alignment: .center) {
+            if checkDriveMounted(path: self.fileRow.path) {
+                if FileManager.default.fileExists(atPath: pathBuilder(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension)!) {
+                        //ADD Image from path with getIcon()
+                        VStack(alignment: .leading) {
+                            Image(nsImage: iconGrabber(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension))
+                        }
                     } else {
-                        print("file does not exist")
-                    }
-                } else {
-                    print("drive not mounted")
-                }
-                */
-                VStack(alignment: .leading) {
-                    Text(fileRow.name).font(Font.system(size: 12, weight: .regular, design: .default))
-                    Text(fileRow.path+"/"+fileRow.name).font(Font.system(size: 10, weight: .regular, design: .default))
+                    // DEFAULT IMAGE
                 }
             }
-        }.frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .leading) {
+                Text(fileRow.name).font(Font.system(size: 12, weight: .regular, design: .default))
+                Text(fileRow.path+"/"+fileRow.name).font(Font.system(size: 10, weight: .regular, design: .default))
+            }
+        }.padding()
     }
 }
 // MARK: - File Detail
@@ -221,6 +224,7 @@ struct FileDetail: View {
             }
             Text(fileDetail.created).font(Font.system(size: 12, weight: .regular, design: .default))
         }.frame(minWidth:250, idealWidth:300, maxWidth:.infinity, maxHeight: .infinity).background(Color.white).padding().onTapGesture(count: 2) {
+            
             if checkDriveMounted(path: self.fileDetail.path) {
                 if FileManager.default.fileExists(atPath: pathBuilder(path: self.fileDetail.path, name: self.fileDetail.name, ext: self.fileDetail.itemExtension)! ) {
                     NSWorkspace.shared.selectFile(pathBuilder(path: self.fileDetail.path, name: self.fileDetail.name, ext: self.fileDetail.itemExtension), inFileViewerRootedAtPath: "")
@@ -244,18 +248,18 @@ struct ResultsView: View {
                         NavigationLink(destination: FileDetail(fileDetail: file)) {
                             FileRow(fileRow: file)
                         }
-                    }
-                }.frame(minHeight:300).background(Color.white)
+                    }.frame(minWidth: 400, maxWidth: .infinity, alignment: .leading)
+                }.frame(minHeight:500).background(Color.white)
             }
             if (networkManager.FileList?.total == 0) {
                 HStack {
-                    Text("No Results Found")
-                }
+                    Text("No Results Found").font(.headline)
+                }.padding()
             }
             if (networkManager.ReturnedErrors?.error.message != nil) {
                 HStack {
-                    Text("\((networkManager.ReturnedErrors?.error.message)!)")
-                }
+                    Text("\((networkManager.ReturnedErrors?.error.message)!)").font(.headline)
+                }.padding()
             }
                 
         }
