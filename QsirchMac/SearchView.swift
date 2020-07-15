@@ -7,6 +7,8 @@
 //
 
 import SwiftUI
+import QuickLookThumbnailing
+
 
 // This extension removes the focus ring entirely.
 extension NSTextField {
@@ -15,6 +17,56 @@ extension NSTextField {
         set { }
     }
 }
+
+
+let previewGenerator = QLThumbnailGenerator()
+
+
+func iconGrabber(path:String) -> NSImage! {
+    if let rep = NSWorkspace.shared.icon(forFile: "/Volumes/\(path)")
+        // Make sure to change the Width/Height for row size!
+        .bestRepresentation(for: NSRect(x: 0, y: 0, width: 1024, height: 1024), context: nil, hints: nil) {
+        let image = NSImage(size: rep.size)
+        image.addRepresentation(rep)
+        return image
+    }
+    return nil
+}
+
+func pathBuilder(path:String, name:String, ext:String?) -> String? {
+    if let ext = ext {
+        var returnURL = URL(string: "/Volumes/")!.appendingPathComponent(path).appendingPathComponent(name)
+        returnURL = returnURL.appendingPathExtension(ext)
+        return String(returnURL.absoluteString).removingPercentEncoding
+    } else {
+        let returnURL = URL(string: "/Volumes/")!.appendingPathComponent(path).appendingPathComponent(name)
+        return String(returnURL.absoluteString).removingPercentEncoding
+    }
+}
+
+func checkDriveMounted(path:String) -> Bool {
+    //let fullPath = URL(string: path)
+    let split = path.components(separatedBy: "/")
+    let firstComponent = split[0]
+    // Check what volumes are mounted! - Usefull!
+    let filemanager:FileManager = FileManager()
+    let keys = [URLResourceKey.volumeNameKey, URLResourceKey.volumeIsRemovableKey, URLResourceKey.volumeIsEjectableKey]
+    let paths = filemanager.mountedVolumeURLs(includingResourceValuesForKeys: keys, options: [.skipHiddenVolumes])
+    var urlArray = [String]()
+    if var urls = paths as [URL]? {
+        urls.removeFirst()
+        for url in urls {
+            urlArray.append(url.pathComponents[2])
+        }
+    }
+    if urlArray.contains(firstComponent) {
+        return true
+    } else {
+        return false
+    }
+    
+}
+
 // MARK: - Draw the Search Bar
 struct SearchBar: View {
     @EnvironmentObject var settings: UserSettings
@@ -137,6 +189,17 @@ struct FileRow: View {
     var body: some View {
         VStack {
             HStack(alignment: .center) {
+                /*
+                if checkDriveMounted(pathBuilder(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension)) {
+                    if FileManager.default.fileExists(atPath: pathBuilder(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension)! ) {
+                        NSWorkspace.shared.selectFile(pathBuilder(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension), inFileViewerRootedAtPath: "")
+                    } else {
+                        print("file does not exist")
+                    }
+                } else {
+                    print("drive not mounted")
+                }
+                */
                 VStack(alignment: .leading) {
                     Text(fileRow.name).font(Font.system(size: 12, weight: .regular, design: .default))
                     Text(fileRow.path+"/"+fileRow.name).font(Font.system(size: 10, weight: .regular, design: .default))
@@ -148,6 +211,7 @@ struct FileRow: View {
 // MARK: - File Detail
 struct FileDetail: View {
     var fileDetail: Item
+    
     var body: some View {
         VStack {
             if (fileDetail.itemExtension) != nil {
@@ -156,11 +220,15 @@ struct FileDetail: View {
                 Text(fileDetail.name).font(Font.system(size: 14, weight: .semibold, design: .default))
             }
             Text(fileDetail.created).font(Font.system(size: 12, weight: .regular, design: .default))
-        }.frame(minWidth:250, idealWidth:300, maxWidth:.infinity, maxHeight: .infinity).background(Color.white).padding().onTapGesture {
-            if (self.fileDetail.itemExtension != nil) {
-                NSWorkspace.shared.selectFile("/Volumes/\(self.fileDetail.path)/\(self.fileDetail.name).\(String(describing: self.fileDetail.itemExtension))", inFileViewerRootedAtPath: "")
+        }.frame(minWidth:250, idealWidth:300, maxWidth:.infinity, maxHeight: .infinity).background(Color.white).padding().onTapGesture(count: 2) {
+            if checkDriveMounted(path: self.fileDetail.path) {
+                if FileManager.default.fileExists(atPath: pathBuilder(path: self.fileDetail.path, name: self.fileDetail.name, ext: self.fileDetail.itemExtension)! ) {
+                    NSWorkspace.shared.selectFile(pathBuilder(path: self.fileDetail.path, name: self.fileDetail.name, ext: self.fileDetail.itemExtension), inFileViewerRootedAtPath: "")
+                } else {
+                    print("file does not exist")
+                }
             } else {
-                NSWorkspace.shared.selectFile("/Volumes/\(self.fileDetail.path)/\(self.fileDetail.name)", inFileViewerRootedAtPath: "")
+                print("drive not mounted")
             }
         }
     }
