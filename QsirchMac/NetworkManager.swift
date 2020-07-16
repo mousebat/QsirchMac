@@ -12,10 +12,10 @@ import Combine
 class NetworkManager: ObservableObject {
     
     @Published var FileList:SearchResults?
-    @Published var filesToDisplay = false
+    @Published var filesToDisplay:Bool = false
     
     @Published var DrivesList:DrivesAvailable?
-    @Published var drivesToDisplay = false
+    @Published var drivesToDisplay:Bool = false
     
     @Published var ReturnedErrors:ReturnedError?
     
@@ -131,7 +131,6 @@ class NetworkManager: ObservableObject {
         components.host = hostname
         components.port = Int(port)
         components.path = "/qsirch/static/api/search"
-        //components.queryItems = [queryItemToken, queryItemQuery]
         components.queryItems = [
             URLQueryItem(name: "q", value: searchstring.stringByAddingPercentEncodingForFormData(plusForSpace: true)),
             URLQueryItem(name: "auth_token", value: token)

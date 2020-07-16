@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8B49469024C096AE007E44D3 /* LoginModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B49468F24C096AE007E44D3 /* LoginModel.swift */; };
+		8B49469224C0978E007E44D3 /* ErrorModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B49469124C0978E007E44D3 /* ErrorModel.swift */; };
+		8B49469624C09C98007E44D3 /* SearchModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B49469524C09C98007E44D3 /* SearchModel.swift */; };
+		8B49469824C0A15C007E44D3 /* DriveListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B49469724C0A15C007E44D3 /* DriveListModel.swift */; };
 		8B60D7F924B89136002B8806 /* URLEncode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B60D7F824B89136002B8806 /* URLEncode.swift */; };
 		8B74ECD724B4BB330007BF5B /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B74ECD624B4BB330007BF5B /* PreferencesView.swift */; };
 		8BE8147524B72A0E0029BC62 /* PreferencesModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BE8147424B72A0E0029BC62 /* PreferencesModel.swift */; };
@@ -38,6 +42,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		8B49468F24C096AE007E44D3 /* LoginModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginModel.swift; sourceTree = "<group>"; };
+		8B49469124C0978E007E44D3 /* ErrorModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ErrorModel.swift; path = QsirchMac/Models/ErrorModel.swift; sourceTree = SOURCE_ROOT; };
+		8B49469524C09C98007E44D3 /* SearchModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SearchModel.swift; path = QsirchMac/Models/SearchModel.swift; sourceTree = SOURCE_ROOT; };
+		8B49469724C0A15C007E44D3 /* DriveListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DriveListModel.swift; path = QsirchMac/Models/DriveListModel.swift; sourceTree = SOURCE_ROOT; };
 		8B60D7F824B89136002B8806 /* URLEncode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLEncode.swift; sourceTree = "<group>"; };
 		8B74ECD624B4BB330007BF5B /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
 		8BE8147424B72A0E0029BC62 /* PreferencesModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesModel.swift; sourceTree = "<group>"; };
@@ -83,6 +91,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		8B49468E24C096A1007E44D3 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				8B49468F24C096AE007E44D3 /* LoginModel.swift */,
+				8B49469124C0978E007E44D3 /* ErrorModel.swift */,
+				8B49469524C09C98007E44D3 /* SearchModel.swift */,
+				8B49469724C0A15C007E44D3 /* DriveListModel.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
 		8BF0926E24AF79D300D94B5E = {
 			isa = PBXGroup;
 			children = (
@@ -106,6 +125,7 @@
 		8BF0927924AF79D300D94B5E /* QsirchMac */ = {
 			isa = PBXGroup;
 			children = (
+				8B49468E24C096A1007E44D3 /* Models */,
 				8B60D7F824B89136002B8806 /* URLEncode.swift */,
 				8BF0927A24AF79D300D94B5E /* AppDelegate.swift */,
 				8BF0927C24AF79D300D94B5E /* SearchView.swift */,
@@ -279,11 +299,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				8BE8147524B72A0E0029BC62 /* PreferencesModel.swift in Sources */,
+				8B49469024C096AE007E44D3 /* LoginModel.swift in Sources */,
 				8BE8147724B7462F0029BC62 /* NetworkManager.swift in Sources */,
+				8B49469624C09C98007E44D3 /* SearchModel.swift in Sources */,
 				8BF0927D24AF79D300D94B5E /* SearchView.swift in Sources */,
 				8B60D7F924B89136002B8806 /* URLEncode.swift in Sources */,
 				8B74ECD724B4BB330007BF5B /* PreferencesView.swift in Sources */,
 				8BF0927B24AF79D300D94B5E /* AppDelegate.swift in Sources */,
+				8B49469824C0A15C007E44D3 /* DriveListModel.swift in Sources */,
+				8B49469224C0978E007E44D3 /* ErrorModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

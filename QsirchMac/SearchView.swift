@@ -116,6 +116,7 @@ struct SearchBar: View {
     
     private func commitSearch() -> Void {
         if (self.searchField != "") {
+            self.networkManager.filesToDisplay = false
             self.networkManager.search(hostname: self.settings.hostname,
                 port: self.settings.port,
                 searchstring: self.searchField,
@@ -190,7 +191,6 @@ struct SearchBar: View {
 
 // MARK: - File Row
 struct FileRow: View {
-    
     var fileRow: Item
     var body: some View {
         HStack(alignment: .center) {
@@ -240,13 +240,16 @@ struct FileDetail: View {
 // MARK: - Search Results
 struct ResultsView: View {
     @EnvironmentObject var networkManager:NetworkManager
+    
     var body: some View {
         VStack {
             if (networkManager.filesToDisplay == true){
                 NavigationView {
-                    List(networkManager.FileList!.items) { file in
-                        NavigationLink(destination: FileDetail(fileDetail: file)) {
-                            FileRow(fileRow: file)
+                    List {
+                        ForEach(networkManager.FileList!.items, id: \.id) { file in
+                            NavigationLink(destination: FileDetail(fileDetail: file)) {
+                                FileRow(fileRow: file)
+                            }
                         }
                     }.frame(minWidth: 400, maxWidth: .infinity, alignment: .leading)
                 }.frame(minHeight:500).background(Color.white)
