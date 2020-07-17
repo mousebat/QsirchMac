@@ -110,18 +110,25 @@ struct SearchBar: View {
             self.commitSearch()
         })
     }
-    
-    
-    @State var searchField = ""
+    // No way to sort binding debounce
+    /* Sort Direction Selector
+    @State var searchField:String = ""
+    private var searchfieldProxy:Binding<String> {
+        Binding<String>(get: { self.searchField }, set: {
+            self.searchField = $0
+            self.commitSearch()
+        })
+    }
+ */
+    @State var searchField:String = ""
     
     private func commitSearch() -> Void {
-        if (self.searchField != "") {
-            self.networkManager.filesToDisplay = false
+        //if (self.searchField != "") {
             self.networkManager.search(hostname: self.settings.hostname,
                 port: self.settings.port,
                 searchstring: self.searchField,
                 token: self.settings.token, path: self.drive, results: self.results, sortby: self.sortby, sortdir: self.sortdir)
-        }
+        //}
     }
         
     var body: some View {
@@ -131,9 +138,7 @@ struct SearchBar: View {
                     self.commitSearch()
                 }
                 // On stop typing call the search function!
-                TextField("Search", text: $searchField, onCommit: {
-                        self.commitSearch()
-                     })
+                TextField("Search", text: $searchField)
                     .textFieldStyle(PlainTextFieldStyle())
                     .foregroundColor(.primary)
                     .background(Color.clear)
@@ -156,9 +161,11 @@ struct SearchBar: View {
                     ScrollView(.horizontal) {
                         Picker(selection: driveProxy, label: Text("Select Drive")) {
                             Text("All").tag("All")
+                            
                             ForEach(networkManager.DrivesList!.items){ drivename in
                                 Text(drivename.name).tag(drivename.name)
                             }
+                            
                         }.pickerStyle(SegmentedPickerStyle()).labelsHidden().frame(alignment: .leading)
                     }
                 }
@@ -191,7 +198,7 @@ struct SearchBar: View {
 
 // MARK: - File Row
 struct FileRow: View {
-    var fileRow: Item
+    var fileRow: SearchItem
     var body: some View {
         HStack(alignment: .center) {
             if checkDriveMounted(path: self.fileRow.path) {
@@ -213,7 +220,7 @@ struct FileRow: View {
 }
 // MARK: - File Detail
 struct FileDetail: View {
-    var fileDetail: Item
+    var fileDetail: SearchItem
     
     var body: some View {
         VStack {
@@ -243,40 +250,38 @@ struct ResultsView: View {
     
     var body: some View {
         VStack {
-            if (networkManager.filesToDisplay == true){
-                NavigationView {
-                    List {
-                        ForEach(networkManager.FileList!.items, id: \.id) { file in
-                            NavigationLink(destination: FileDetail(fileDetail: file)) {
-                                FileRow(fileRow: file)
-                            }
+            NavigationView {
+                List {
+                    ForEach(networkManager.FileList!.items) { file in
+                        NavigationLink(destination: FileDetail(fileDetail: file)) {
+                            FileRow(fileRow: file)
                         }
-                    }.frame(minWidth: 400, maxWidth: .infinity, alignment: .leading)
-                }.frame(minHeight:500).background(Color.white)
+                    }
+                }.frame(minWidth: 400, maxWidth: .infinity, alignment: .leading)
+            }.frame(minHeight:500).background(Color.white)
+        }
+    }
+}
+// MARK: - Main Search View
+struct SearchView: View {
+    @EnvironmentObject var networkManager:NetworkManager
+    
+    var body: some View {
+        VStack {
+            SearchBar()
+            if networkManager.filesToDisplay {
+                ResultsView()
             }
             if (networkManager.FileList?.total == 0) {
                 HStack {
                     Text("No Results Found").font(.headline)
                 }.padding()
             }
-            if (networkManager.ReturnedErrors?.error.message != nil) {
+            if (networkManager.ErrorReturned?.error.message != nil) {
                 HStack {
-                    Text("\((networkManager.ReturnedErrors?.error.message)!)").font(.headline)
+                    Text("\(networkManager.ErrorReturned?.error.message ?? "Unknown Error")").font(.headline)
                 }.padding()
             }
-                
-        }
-    }
-}
-// MARK: - Main Search View
-struct SearchView: View {
-    //@EnvironmentObject var networkManager:NetworkManager
-    @State var searchField = " "
-    
-    var body: some View {
-        VStack {
-            SearchBar()
-            ResultsView()
         }
     }
 }

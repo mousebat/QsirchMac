@@ -21,7 +21,6 @@ private var portFormatter: NumberFormatter = {
 
 struct PreferencesView: View {
     
-    
     @EnvironmentObject var settings: UserSettings
     @EnvironmentObject var networkManager: NetworkManager
     

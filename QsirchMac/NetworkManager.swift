@@ -11,19 +11,19 @@ import Combine
 
 class NetworkManager: ObservableObject {
     
-    @Published var FileList:SearchResults?
+    @Published var FileList:SearchReturn?
     @Published var filesToDisplay:Bool = false
     
-    @Published var DrivesList:DrivesAvailable?
+    @Published var DrivesList:DriveListReturn?
     @Published var drivesToDisplay:Bool = false
     
-    @Published var ReturnedErrors:ReturnedError?
+    @Published var ErrorReturned:ErrorReturn?
     
     @Published var LoginReturned:LoginReturn?
     @Published var HardError:String?
 
     // MARK: - Login Method
-    func login(hostname:String, port:String, username:String, password:String, completion: @escaping (LoginReturn?,ReturnedError?,String?) ->() ) {
+    func login(hostname:String, port:String, username:String, password:String, completion: @escaping (LoginReturn?,ErrorReturn?,String?) ->() ) {
         let semaphore = DispatchSemaphore(value: 1)
         guard let loginURL = URL(string: "https://\(hostname):\(port)/qsirch/static/api/login") else { return }
         DispatchQueue.global().async {
@@ -32,7 +32,6 @@ class NetworkManager: ObservableObject {
             self.logout(hostname: hostname, port: port) { (LogoutReturn) in
                 if (LogoutReturn != "200") {
                     completion(nil,nil,"Hostname Incorrect")
-                    
                 }
                 semaphore.signal()
             }
@@ -53,12 +52,12 @@ class NetworkManager: ObservableObject {
                 do {
                     guard let data = data, let response = response else { return }
                     let httpResponse = response as? HTTPURLResponse
-                    switch httpResponse?.statusCode {
+                    switch httpResponse!.statusCode as Int {
                         case 200:
                             let loginResponse = try JSONDecoder().decode(LoginReturn.self, from: data)
                             completion(loginResponse,nil,nil)
                         case 400:
-                            let loginResponse = try JSONDecoder().decode(ReturnedError.self, from: data)
+                            let loginResponse = try JSONDecoder().decode(ErrorReturn.self, from: data)
                             completion(nil,loginResponse,nil)
                         default:
                             completion(nil,nil,"Unknown Error")
@@ -79,20 +78,21 @@ class NetworkManager: ObservableObject {
             let driveTask = URLSession.shared.dataTask(with: driveRequest) { (data, response, error) in
                 do {
                     guard let data = data else { return }
+                    
                     let httpResponse = response as? HTTPURLResponse
                     switch httpResponse!.statusCode as Int {
                     case 200:
-                        let driveList = try! JSONDecoder().decode(DrivesAvailable.self, from: data)
+                        let driveList = try! JSONDecoder().decode(DriveListReturn.self, from: data)
                         DispatchQueue.main.async {
                             self.DrivesList = driveList
-                            if self.DrivesList!.total > 0 {
+                            if driveList.total > 0 {
                                 self.drivesToDisplay = true
                             } else {
                                 self.drivesToDisplay = false
                             }
                         }
                     case 400...500:
-                        let returnedErrors = try JSONDecoder().decode(ReturnedError.self, from: data)
+                        let returnedErrors = try JSONDecoder().decode(ErrorReturn.self, from: data)
                         print(returnedErrors)
                         default: break
                     }
@@ -102,10 +102,7 @@ class NetworkManager: ObservableObject {
                 semaphore.signal()
             }
             driveTask.resume()
-            
-            //End Drive Aquisition
-            
-        }
+         }
     }
     // MARK: - Logout Method
     func logout(hostname:String, port:String, completion: @escaping (String) -> () ) {
@@ -125,6 +122,8 @@ class NetworkManager: ObservableObject {
     }
     // MARK: - Search Method
     func search(hostname:String, port:String, searchstring:String, token:String, path:String, results:String, sortby:String, sortdir:String) {
+        self.filesToDisplay = false
+        
         //Safely Construct URL
         var components = URLComponents()
         components.scheme = "https"
@@ -154,7 +153,7 @@ class NetworkManager: ObservableObject {
                 let httpResponse = response as? HTTPURLResponse
                 switch httpResponse!.statusCode as Int {
                 case 200:
-                    let fileList = try! JSONDecoder().decode(SearchResults.self, from: data)
+                    let fileList = try! JSONDecoder().decode(SearchReturn.self, from: data)
                     DispatchQueue.main.async {
                         self.FileList = fileList
                         if self.FileList!.total > 0 {
@@ -164,9 +163,9 @@ class NetworkManager: ObservableObject {
                         }
                     }
                 case 400...500:
-                    let returnedErrors = try JSONDecoder().decode(ReturnedError.self, from: data)
+                    let errorReturns = try JSONDecoder().decode(ErrorReturn.self, from: data)
                     DispatchQueue.main.async {
-                        self.ReturnedErrors = returnedErrors
+                        self.ErrorReturned = errorReturns
                     }
                 default: break
                 }
@@ -178,11 +177,3 @@ class NetworkManager: ObservableObject {
         task.resume()
     }
 }
-
-
-
-
-
-
-
-

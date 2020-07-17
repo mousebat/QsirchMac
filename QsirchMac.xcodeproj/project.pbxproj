@@ -13,7 +13,7 @@
 		8B49469824C0A15C007E44D3 /* DriveListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B49469724C0A15C007E44D3 /* DriveListModel.swift */; };
 		8B60D7F924B89136002B8806 /* URLEncode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B60D7F824B89136002B8806 /* URLEncode.swift */; };
 		8B74ECD724B4BB330007BF5B /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B74ECD624B4BB330007BF5B /* PreferencesView.swift */; };
-		8BE8147524B72A0E0029BC62 /* PreferencesModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BE8147424B72A0E0029BC62 /* PreferencesModel.swift */; };
+		8BE8147524B72A0E0029BC62 /* UserSettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BE8147424B72A0E0029BC62 /* UserSettingsManager.swift */; };
 		8BE8147724B7462F0029BC62 /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BE8147624B7462F0029BC62 /* NetworkManager.swift */; };
 		8BF0927B24AF79D300D94B5E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BF0927A24AF79D300D94B5E /* AppDelegate.swift */; };
 		8BF0927D24AF79D300D94B5E /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BF0927C24AF79D300D94B5E /* SearchView.swift */; };
@@ -48,7 +48,7 @@
 		8B49469724C0A15C007E44D3 /* DriveListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DriveListModel.swift; path = QsirchMac/Models/DriveListModel.swift; sourceTree = SOURCE_ROOT; };
 		8B60D7F824B89136002B8806 /* URLEncode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLEncode.swift; sourceTree = "<group>"; };
 		8B74ECD624B4BB330007BF5B /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
-		8BE8147424B72A0E0029BC62 /* PreferencesModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesModel.swift; sourceTree = "<group>"; };
+		8BE8147424B72A0E0029BC62 /* UserSettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettingsManager.swift; sourceTree = "<group>"; };
 		8BE8147624B7462F0029BC62 /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
 		8BF0927724AF79D300D94B5E /* QsirchMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QsirchMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8BF0927A24AF79D300D94B5E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -131,7 +131,7 @@
 				8BF0927C24AF79D300D94B5E /* SearchView.swift */,
 				8B74ECD624B4BB330007BF5B /* PreferencesView.swift */,
 				8BE8147624B7462F0029BC62 /* NetworkManager.swift */,
-				8BE8147424B72A0E0029BC62 /* PreferencesModel.swift */,
+				8BE8147424B72A0E0029BC62 /* UserSettingsManager.swift */,
 				8BF0927E24AF79D300D94B5E /* Assets.xcassets */,
 				8BF0928324AF79D300D94B5E /* Main.storyboard */,
 				8BF0928624AF79D300D94B5E /* Info.plist */,
@@ -230,7 +230,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1150;
-				LastUpgradeCheck = 1150;
+				LastUpgradeCheck = 1160;
 				ORGANIZATIONNAME = Caters;
 				TargetAttributes = {
 					8BF0927624AF79D300D94B5E = {
@@ -298,7 +298,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8BE8147524B72A0E0029BC62 /* PreferencesModel.swift in Sources */,
+				8BE8147524B72A0E0029BC62 /* UserSettingsManager.swift in Sources */,
 				8B49469024C096AE007E44D3 /* LoginModel.swift in Sources */,
 				8BE8147724B7462F0029BC62 /* NetworkManager.swift in Sources */,
 				8B49469624C09C98007E44D3 /* SearchModel.swift in Sources */,
@@ -472,6 +472,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = QsirchMac/QsirchMac.entitlements;
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"QsirchMac/Preview Content\"";
@@ -495,6 +496,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = QsirchMac/QsirchMac.entitlements;
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"QsirchMac/Preview Content\"";

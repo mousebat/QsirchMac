@@ -70,7 +70,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let port = defaults.string(forKey: "port"),
             let username = defaults.string(forKey: "username"),
             let password = defaults.string(forKey: "password") {
-            networkmanager.login(hostname: hostname, port: port, username: username, password: password) { (LoginReturn, ReturnedError, HardError) in
+            networkmanager.login(hostname: hostname, port: port, username: username, password: password) { (LoginReturn, ErrorReturned, HardError) in
                 if let LoginReturn = LoginReturn {
                     DispatchQueue.main.async {
                         self.settings.token = LoginReturn.qqsSid
@@ -78,9 +78,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         
                     }
                 }
-                if let ReturnedError = ReturnedError, let HardError = HardError {
+                if let ErrorReturned = ErrorReturned, let HardError = HardError {
                     self.networkmanager.HardError = HardError
-                    self.networkmanager.ReturnedErrors = ReturnedError
+                    self.networkmanager.ErrorReturned = ErrorReturned
                     self.openPreferencesWindow()
                 }
             }
