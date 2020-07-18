@@ -75,10 +75,9 @@ func checkDriveMounted(path:String) -> Bool {
 
 // MARK: - Draw the Search Bar
 struct SearchBar: View {
-    @EnvironmentObject var settings: UserSettings
     @EnvironmentObject var networkManager:NetworkManager
     
-    // Drive Selector
+    /* Drive Selector
     @State var drive = "All"
     private var driveProxy:Binding<String> {
         Binding<String>(get: { self.drive }, set: {
@@ -120,25 +119,22 @@ struct SearchBar: View {
         })
     }
  */
-    @State var searchField:String = ""
+ */
+    //@State var searchField:String = ""
     
     private func commitSearch() -> Void {
-        //if (self.searchField != "") {
-            self.networkManager.search(hostname: self.settings.hostname,
-                port: self.settings.port,
-                searchstring: self.searchField,
-                token: self.settings.token, path: self.drive, results: self.results, sortby: self.sortby, sortdir: self.sortdir)
-        //}
+            self.networkManager.search(hostname: self.networkManager.hostname,
+                port: self.networkManager.port,
+                searchstring: self.networkManager.searchField,
+                token: self.networkManager.token, path: self.networkManager.drive, results: self.networkManager.results, sortby: self.networkManager.sortby, sortdir: self.networkManager.sortdir)
     }
         
     var body: some View {
         VStack {
             HStack(alignment: .center, spacing: 10) {
-                Text("􀊫").font(.largeTitle).foregroundColor(.primary).onTapGesture {
-                    self.commitSearch()
-                }
+                Text("􀊫").font(.largeTitle).foregroundColor(.primary)
                 // On stop typing call the search function!
-                TextField("Search", text: $searchField)
+                TextField("Search", text: $networkManager.searchField)
                     .textFieldStyle(PlainTextFieldStyle())
                     .foregroundColor(.primary)
                     .background(Color.clear)
@@ -159,7 +155,7 @@ struct SearchBar: View {
             HStack(alignment: .center) {
                 if (networkManager.drivesToDisplay == true){
                     ScrollView(.horizontal) {
-                        Picker(selection: driveProxy, label: Text("Select Drive")) {
+                        Picker(selection: $networkManager.drive, label: Text("Select Drive")) {
                             Text("All").tag("All")
                             
                             ForEach(networkManager.DrivesList!.items){ drivename in
@@ -170,14 +166,14 @@ struct SearchBar: View {
                     }
                 }
                 Spacer()
-                Picker(selection: resultsProxy, label: Text("Results")) {
+                Picker(selection: $networkManager.results, label: Text("Results")) {
                     Text("Results").tag("25")
                     Text("50").tag("50")
                     Text("100").tag("100")
                     Text("200").tag("200")
                     }.pickerStyle(PopUpButtonPickerStyle()).labelsHidden().frame(width: 85)
                 Divider().frame(height: 20)
-                Picker(selection: sortbyProxy, label: Text("Sort By")) {
+                Picker(selection: $networkManager.sortby, label: Text("Sort By")) {
                     Text("Sort By").tag("relevance")
                     Text("Name").tag("name")
                     Text("Size").tag("size")
@@ -185,7 +181,7 @@ struct SearchBar: View {
                     Text("Modified").tag("modified")
                 }.pickerStyle(PopUpButtonPickerStyle()).labelsHidden().frame(width: 85)
                 Divider().frame(height: 20)
-                Picker(selection: sortdirProxy, label: Text("Sort 􀄬")) {
+                Picker(selection: $networkManager.sortdir, label: Text("Sort 􀄬")) {
                     Text("Sort 􀄬").tag("default")
                     Text("Desc 􀄩").tag("desc")
                     Text("Asc 􀄨").tag("asc")
@@ -277,11 +273,11 @@ struct SearchView: View {
                     Text("No Results Found").font(.headline)
                 }.padding()
             }
-            if (networkManager.ErrorReturned?.error.message != nil) {
+            //if (networkManager.ErrorReturned?.error.message != nil) {
                 HStack {
                     Text("\(networkManager.ErrorReturned?.error.message ?? "Unknown Error")").font(.headline)
                 }.padding()
-            }
+            //}
         }
     }
 }

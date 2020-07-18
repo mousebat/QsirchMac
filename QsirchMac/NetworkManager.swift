@@ -21,20 +21,74 @@ class NetworkManager: ObservableObject {
     
     @Published var LoginReturned:LoginReturn?
     @Published var HardError:String?
+    
+    
+    @Published var hostname:String { didSet { UserDefaults.standard.string(forKey: "hostname") } }
+    @Published var username:String { didSet { UserDefaults.standard.string(forKey: "username") } }
+    @Published var password:String { didSet { UserDefaults.standard.string(forKey: "password") } }
+    @Published var port:String { didSet { UserDefaults.standard.string(forKey: "port") } }
+    
+    @Published var drive = "All"
+    @Published var results = "25"
+    @Published var sortby = "relevance"
+    @Published var sortdir:String = "default"
+    
+    @Published var searchField:String = ""
+    private var cancellable: AnyCancellable? = nil
+    init() {
+        self.hostname = UserDefaults.standard.object(forKey: "hostname") as? String ?? ""
+        self.username = UserDefaults.standard.object(forKey: "username") as? String ?? ""
+        self.password = UserDefaults.standard.object(forKey: "password") as? String ?? ""
+        self.port = UserDefaults.standard.object(forKey: "port") as? String ?? ""
+        // Try search!  Works!
+        cancellable = AnyCancellable(
+        $searchField.removeDuplicates()
+          .debounce(for: 0.8, scheduler: DispatchQueue.main)
+          .sink { searchText in
+            self.search(hostname: self.hostname,
+            port: self.port,
+            searchstring: self.searchField,
+            token: self.token, path: self.drive, results: self.results, sortby: self.sortby, sortdir: self.sortdir)
+        })
+        
+    }
+    deinit {
+        cancellable?.cancel()
+    }
+    
+    
+    @Published var token:String = ""
+    
+    
+    
+    
+    
 
     // MARK: - Login Method
     func login(hostname:String, port:String, username:String, password:String, completion: @escaping (LoginReturn?,ErrorReturn?,String?) ->() ) {
         let semaphore = DispatchSemaphore(value: 1)
+        
         guard let loginURL = URL(string: "https://\(hostname):\(port)/qsirch/static/api/login") else { return }
+        
+        guard let logoutURL = URL(string: "https://\(hostname):\(port)/qsirch/static/api/logout") else { return }
+        
         DispatchQueue.global().async {
             //Begin Logout
             semaphore.wait()
-            self.logout(hostname: hostname, port: port) { (LogoutReturn) in
-                if (LogoutReturn != "200") {
-                    completion(nil,nil,"Hostname Incorrect")
+            var logoutrequest = URLRequest(url: logoutURL)
+            logoutrequest.httpMethod = "GET"
+            let logouttask = URLSession.shared.dataTask(with: logoutURL) { _, response, error in
+                if let error = error {
+                    completion(nil,nil,error.localizedDescription)
+                }
+                guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
+                    completion(nil,nil,error?.localizedDescription)
+                    semaphore.signal()
+                    return
                 }
                 semaphore.signal()
             }
+            logouttask.resume()
             //End Logout
             //Begin Login
             semaphore.wait()
@@ -55,6 +109,7 @@ class NetworkManager: ObservableObject {
                     switch httpResponse!.statusCode as Int {
                         case 200:
                             let loginResponse = try JSONDecoder().decode(LoginReturn.self, from: data)
+                            self.token = loginResponse.qqsSid
                             completion(loginResponse,nil,nil)
                         case 400:
                             let loginResponse = try JSONDecoder().decode(ErrorReturn.self, from: data)
@@ -68,7 +123,6 @@ class NetworkManager: ObservableObject {
                 semaphore.signal()
             }
             task.resume()
-            
             semaphore.wait()
             //End Login
             //Begin Drive Aquisition
@@ -93,8 +147,9 @@ class NetworkManager: ObservableObject {
                         }
                     case 400...500:
                         let returnedErrors = try JSONDecoder().decode(ErrorReturn.self, from: data)
-                        print(returnedErrors)
-                        default: break
+                        self.ErrorReturned = returnedErrors
+                    default:
+                        break
                     }
                 } catch {
                     print(error)
@@ -104,25 +159,9 @@ class NetworkManager: ObservableObject {
             driveTask.resume()
          }
     }
-    // MARK: - Logout Method
-    func logout(hostname:String, port:String, completion: @escaping (String) -> () ) {
-        guard let logoutURL = URL(string: "https://\(hostname):\(port)/qsirch/static/api/logout") else { return }
-        var request = URLRequest(url: logoutURL)
-        request.httpMethod = "GET"
-        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-            let httpResponse = response as? HTTPURLResponse
-            if error != nil {
-                completion(error!.localizedDescription)
-            } else {
-                let statuscode = String(httpResponse!.statusCode)
-                completion(statuscode)
-            }
-        }
-        task.resume()
-    }
     // MARK: - Search Method
     func search(hostname:String, port:String, searchstring:String, token:String, path:String, results:String, sortby:String, sortdir:String) {
-        self.filesToDisplay = false
+        print("Called?!")
         
         //Safely Construct URL
         var components = URLComponents()

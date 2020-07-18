@@ -21,7 +21,6 @@ private var portFormatter: NumberFormatter = {
 
 struct PreferencesView: View {
     
-    @EnvironmentObject var settings: UserSettings
     @EnvironmentObject var networkManager: NetworkManager
     
     @State var hostnameField: String = UserDefaults.standard.string(forKey: "hostname") ?? ""
@@ -50,13 +49,13 @@ struct PreferencesView: View {
                 let defaults = UserDefaults.standard
                 // TODO: - if login successfull {
                 defaults.set(hostnameField, forKey: "hostname")
-                settings.hostname = hostnameField
+                networkManager.hostname = hostnameField
                 defaults.set(usernameField, forKey: "username")
-                settings.username = usernameField
+                networkManager.username = usernameField
                 defaults.set(passwordField, forKey: "password")
-                settings.password = passwordField
+                networkManager.password = passwordField
                 defaults.set(portField, forKey: "port")
-                settings.port = portField
+                networkManager.port = portField
                 NSApplication.shared.keyWindow?.close()
                 NSApp.sendAction(#selector(AppDelegate.openSearchWindow), to: nil, from:nil)
                 //} TODO...
@@ -66,10 +65,10 @@ struct PreferencesView: View {
                 dictionary.keys.forEach { key in
                     defaults.removeObject(forKey: key)
                 }
-                settings.hostname = hostnameField
-                settings.username = usernameField
-                settings.password = passwordField
-                settings.port = portField
+                networkManager.hostname = hostnameField
+                networkManager.username = usernameField
+                networkManager.password = passwordField
+                networkManager.port = portField
                 NSApplication.shared.keyWindow?.close()
                 NSApp.sendAction(#selector(AppDelegate.openSearchWindow), to: nil, from:nil)
                 //} TODO...
@@ -144,7 +143,7 @@ struct PreferencesView: View {
                                     self.networkManager.login(hostname: self.hostnameField, port: self.portField, username: self.usernameField, password: self.passwordField) { (LoginReturn, ReturnedError, HardError) in
                                         if let LoginReturn = LoginReturn {
                                             DispatchQueue.main.async {
-                                                self.settings.token = LoginReturn.qqsSid
+                                                self.networkManager.token = LoginReturn.qqsSid
                                             }
                                             self.connectionOutput = "User \(LoginReturn.userName) logged in successfully"
                                         }
@@ -164,7 +163,7 @@ struct PreferencesView: View {
                                     self.networkManager.login(hostname: self.hostnameField, port: self.portField, username: self.usernameField, password: self.passwordField) { (LoginReturn, ReturnedError, HardError) in
                                         if let LoginReturn = LoginReturn {
                                             DispatchQueue.main.async {
-                                                self.settings.token = LoginReturn.qqsSid
+                                                self.networkManager.token = LoginReturn.qqsSid
                                                 self.save()
                                             }
                                             self.connectionOutput = "User \(LoginReturn.userName) logged in successfully"

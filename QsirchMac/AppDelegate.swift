@@ -23,8 +23,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     var preferencesWindow: NSWindow!
     
-    var settings = UserSettings()
-    var networkmanager = NetworkManager()
+    var networkManager = NetworkManager()
     
     
     @objc func openPreferencesWindow() {
@@ -39,7 +38,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             preferencesWindow.center()
             //preferencesWindow.setFrameAutosaveName("Preferences")
             preferencesWindow.isReleasedWhenClosed = false
-            preferencesWindow.contentView = NSHostingView(rootView: preferencesView.environmentObject(settings).environmentObject(networkmanager))
+            preferencesWindow.contentView = NSHostingView(rootView: preferencesView.environmentObject(networkManager))
         }
         preferencesWindow.makeKeyAndOrderFront(nil)
     }
@@ -57,7 +56,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             searchWindow.isReleasedWhenClosed = false
             searchWindow.isMovableByWindowBackground = true
             searchWindow.titlebarAppearsTransparent = true
-            searchWindow.contentView = NSHostingView(rootView: searchView.environmentObject(settings).environmentObject(networkmanager))
+            searchWindow.contentView = NSHostingView(rootView: searchView.environmentObject(networkManager))
         }
         searchWindow.makeKeyAndOrderFront(true)
     }
@@ -70,18 +69,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let port = defaults.string(forKey: "port"),
             let username = defaults.string(forKey: "username"),
             let password = defaults.string(forKey: "password") {
-            networkmanager.login(hostname: hostname, port: port, username: username, password: password) { (LoginReturn, ErrorReturned, HardError) in
-                if let LoginReturn = LoginReturn {
-                    DispatchQueue.main.async {
-                        self.settings.token = LoginReturn.qqsSid
-                        self.openSearchWindow()
-                        
-                    }
-                }
+            networkManager.login(hostname: hostname, port: port, username: username, password: password) { (LoginReturn, ErrorReturned, HardError) in
                 if let ErrorReturned = ErrorReturned, let HardError = HardError {
-                    self.networkmanager.HardError = HardError
-                    self.networkmanager.ErrorReturned = ErrorReturned
-                    self.openPreferencesWindow()
+                    DispatchQueue.main.async {
+                        self.networkManager.HardError = HardError
+                        self.networkManager.ErrorReturned = ErrorReturned
+                        self.openPreferencesWindow()
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        self.openSearchWindow()
+                    }
                 }
             }
         } else {
