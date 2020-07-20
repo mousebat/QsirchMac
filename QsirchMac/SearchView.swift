@@ -32,7 +32,7 @@ func pathBuilder(path:String, name:String, ext:String?) -> String? {
         return String(returnURL.absoluteString).removingPercentEncoding
     }
 }
-
+//DEPRECATED? have inlined...
 func iconGrabber(path:String, name:String, ext:String?) -> NSImage! {
     if let builtPath = pathBuilder(path: path, name: name, ext: ext) {
         if let rep = NSWorkspace.shared.icon(forFile: "/Volumes/\(builtPath)")
@@ -48,6 +48,7 @@ func iconGrabber(path:String, name:String, ext:String?) -> NSImage! {
         return nil
     }
 }
+
 
 func checkDriveMounted(path:String) -> Bool {
     //let fullPath = URL(string: path)
@@ -180,20 +181,23 @@ struct SearchBar: View {
 struct FileRow: View {
     var fileRow: SearchItem
     var body: some View {
-        HStack(alignment: .center) {
+        HStack {
             if checkDriveMounted(path: self.fileRow.path) {
-                if FileManager.default.fileExists(atPath: pathBuilder(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension)!) {
+                //if FileManager.default.fileExists(atPath: pathBuilder(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension)!) {
                         //ADD Image from path with getIcon()
-                        VStack(alignment: .leading) {
-                            Image(nsImage: iconGrabber(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension))
-                        }
-                    } else {
-                    // DEFAULT IMAGE
+                VStack(alignment: .leading) {
+                    if FileManager.default.fileExists(atPath: pathBuilder(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension)!) {
+                        Image(nsImage: NSWorkspace.shared.icon(forFile: pathBuilder(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension)!))
+                    }
+                    else {
+                        Text("􀍼").foregroundColor(.red).font(.title)
+                    }
+                    //Image(nsImage: iconGrabber(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension))
                 }
             }
             VStack(alignment: .leading) {
                 Text(fileRow.name).font(Font.system(size: 12, weight: .regular, design: .default))
-                Text(fileRow.path+"/"+fileRow.name).font(Font.system(size: 10, weight: .regular, design: .default))
+                Text(pathBuilder(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension)!).font(Font.system(size: 10, weight: .regular, design: .default))
             }
         }.padding()
     }
@@ -204,6 +208,14 @@ struct FileDetail: View {
     
     var body: some View {
         VStack {
+            //Thumbnail here
+            if FileManager.default.fileExists(atPath: pathBuilder(path: self.fileDetail.path, name: self.fileDetail.name, ext: self.fileDetail.itemExtension)!) {
+                Image(nsImage: NSWorkspace.shared.icon(forFile: pathBuilder(path: self.fileDetail.path, name: self.fileDetail.name, ext: self.fileDetail.itemExtension)!))
+            }
+            else {
+                Text("􀍼").foregroundColor(.red).font(.title)
+            }
+            //File Path
             if (fileDetail.itemExtension) != nil {
                 Text(fileDetail.name + "." + fileDetail.itemExtension!).font(Font.system(size: 14, weight: .semibold, design: .default))
             } else {
@@ -211,7 +223,6 @@ struct FileDetail: View {
             }
             Text(fileDetail.created).font(Font.system(size: 12, weight: .regular, design: .default))
         }.frame(minWidth:250, idealWidth:300, maxWidth:.infinity, maxHeight: .infinity).background(Color.white).padding().onTapGesture(count: 2) {
-            
             if checkDriveMounted(path: self.fileDetail.path) {
                 if FileManager.default.fileExists(atPath: pathBuilder(path: self.fileDetail.path, name: self.fileDetail.name, ext: self.fileDetail.itemExtension)! ) {
                     NSWorkspace.shared.selectFile(pathBuilder(path: self.fileDetail.path, name: self.fileDetail.name, ext: self.fileDetail.itemExtension), inFileViewerRootedAtPath: "")
@@ -222,13 +233,12 @@ struct FileDetail: View {
                 
                 print("drive not mounted")
             }
-        }
+        }.background(Color(.white))
     }
 }
 // MARK: - Search Results
 struct ResultsView: View {
     @EnvironmentObject var networkManager:NetworkManager
-    
     var body: some View {
         VStack {
             NavigationView {
@@ -239,7 +249,8 @@ struct ResultsView: View {
                         }
                     }
                 }.frame(minWidth: 400, maxWidth: .infinity, alignment: .leading)
-            }.frame(minHeight:500).background(Color.white)
+                Rectangle().frame(maxWidth: 0, maxHeight: .infinity)
+            }.frame(minHeight:500, idealHeight: 550, maxHeight: .infinity)
         }
     }
 }
@@ -263,7 +274,7 @@ struct SearchView: View {
                     Text("\(networkManager.ErrorReturned?.error.message ?? "Unknown Error")").font(.headline)
                 }.padding()
             }
-        }.cornerRadius(10, antialiased: true)
+        }.background(Color(.windowBackgroundColor))
     }
 }
 

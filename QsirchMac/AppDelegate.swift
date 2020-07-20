@@ -44,18 +44,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func openSearchWindow() {
         if nil == searchWindow {
-            let searchView = SearchView()
-            
+            let searchView = SearchView().cornerRadius(10)
             // Create the search window and set content
             searchWindow = SWindow(
                 contentRect: NSRect(x: 0, y: 0, width: 850, height: 500),
-                styleMask: [.resizable],
+                styleMask: [.resizable, .fullSizeContentView],
                 backing: .buffered, defer: false)
             searchWindow.center()
             searchWindow.isReleasedWhenClosed = false
             searchWindow.isMovableByWindowBackground = true
             searchWindow.titlebarAppearsTransparent = true
             searchWindow.isOpaque = false
+            searchWindow.backgroundColor = NSColor.clear
             searchWindow.contentView = NSHostingView(rootView: searchView.environmentObject(networkManager))
         }
         searchWindow.makeKeyAndOrderFront(true)
