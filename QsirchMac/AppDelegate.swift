@@ -36,7 +36,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 backing: .buffered,
                 defer: false)
             preferencesWindow.center()
-            //preferencesWindow.setFrameAutosaveName("Preferences")
             preferencesWindow.isReleasedWhenClosed = false
             preferencesWindow.contentView = NSHostingView(rootView: preferencesView.environmentObject(networkManager))
         }
@@ -46,16 +45,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func openSearchWindow() {
         if nil == searchWindow {
             let searchView = SearchView()
+            
             // Create the search window and set content
             searchWindow = SWindow(
                 contentRect: NSRect(x: 0, y: 0, width: 850, height: 500),
                 styleMask: [.resizable],
                 backing: .buffered, defer: false)
             searchWindow.center()
-            //searchWindow.setFrameAutosaveName("Main Window")
             searchWindow.isReleasedWhenClosed = false
             searchWindow.isMovableByWindowBackground = true
             searchWindow.titlebarAppearsTransparent = true
+            searchWindow.isOpaque = false
             searchWindow.contentView = NSHostingView(rootView: searchView.environmentObject(networkManager))
         }
         searchWindow.makeKeyAndOrderFront(true)

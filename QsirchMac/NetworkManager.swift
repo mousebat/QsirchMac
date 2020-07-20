@@ -27,13 +27,15 @@ class NetworkManager: ObservableObject {
     @Published var username:String { didSet { UserDefaults.standard.string(forKey: "username") } }
     @Published var password:String { didSet { UserDefaults.standard.string(forKey: "password") } }
     @Published var port:String { didSet { UserDefaults.standard.string(forKey: "port") } }
+    @Published var token:String = ""
     
-    @Published var drive = "All"
-    @Published var results = "25"
-    @Published var sortby = "relevance"
+    @Published var drive:String = "All"
+    @Published var results:String = "25"
+    @Published var sortby:String = "relevance"
     @Published var sortdir:String = "default"
     
     @Published var searchField:String = ""
+    
     private var cancellable: AnyCancellable? = nil
     init() {
         self.hostname = UserDefaults.standard.object(forKey: "hostname") as? String ?? ""
@@ -42,14 +44,17 @@ class NetworkManager: ObservableObject {
         self.port = UserDefaults.standard.object(forKey: "port") as? String ?? ""
         // Try search!  Works!
         cancellable = AnyCancellable(
-        $searchField.removeDuplicates()
-          .debounce(for: 0.8, scheduler: DispatchQueue.main)
-          .sink { searchText in
-            self.search(hostname: self.hostname,
-            port: self.port,
-            searchstring: self.searchField,
-            token: self.token, path: self.drive, results: self.results, sortby: self.sortby, sortdir: self.sortdir)
-        })
+        $searchField
+            .removeDuplicates()
+            .debounce(for: 0.8, scheduler: DispatchQueue.main)
+            .sink { searchText in
+                self.search(searchstring: self.searchField,
+                            path: self.drive,
+                            results: self.results,
+                            sortby: self.sortby,
+                            sortdir: self.sortdir)
+            }
+        )
         
     }
     deinit {
@@ -57,13 +62,7 @@ class NetworkManager: ObservableObject {
     }
     
     
-    @Published var token:String = ""
     
-    
-    
-    
-    
-
     // MARK: - Login Method
     func login(hostname:String, port:String, username:String, password:String, completion: @escaping (LoginReturn?,ErrorReturn?,String?) ->() ) {
         let semaphore = DispatchSemaphore(value: 1)
@@ -160,59 +159,63 @@ class NetworkManager: ObservableObject {
          }
     }
     // MARK: - Search Method
-    func search(hostname:String, port:String, searchstring:String, token:String, path:String, results:String, sortby:String, sortdir:String) {
-        print("Called?!")
-        
-        //Safely Construct URL
-        var components = URLComponents()
-        components.scheme = "https"
-        components.host = hostname
-        components.port = Int(port)
-        components.path = "/qsirch/static/api/search"
-        components.queryItems = [
-            URLQueryItem(name: "q", value: searchstring.stringByAddingPercentEncodingForFormData(plusForSpace: true)),
-            URLQueryItem(name: "auth_token", value: token)
-        ]
-        if (path != "All") {
-            components.queryItems!.append(URLQueryItem(name: "path", value: path))
-        }
-        components.queryItems!.append(URLQueryItem(name: "limit", value: results))
-        components.queryItems!.append(URLQueryItem(name: "sort_by", value: sortby))
-        var sorteddir = sortdir
-        if (sortdir == "default") {
-            sorteddir = "desc"
-        }
-        components.queryItems!.append(URLQueryItem(name: "sort_dir", value: sorteddir))
-        
-        // Make sure URL actually got constructed
-        guard let searchURL = components.url else { return }
-        let task = URLSession.shared.dataTask(with: searchURL) { (data, response, error) in
-            do {
-                guard let data = data else { return }
-                let httpResponse = response as? HTTPURLResponse
-                switch httpResponse!.statusCode as Int {
-                case 200:
-                    let fileList = try! JSONDecoder().decode(SearchReturn.self, from: data)
-                    DispatchQueue.main.async {
-                        self.FileList = fileList
-                        if self.FileList!.total > 0 {
-                            self.filesToDisplay = true
-                        } else {
-                            self.filesToDisplay = false
-                        }
-                    }
-                case 400...500:
-                    let errorReturns = try JSONDecoder().decode(ErrorReturn.self, from: data)
-                    DispatchQueue.main.async {
-                        self.ErrorReturned = errorReturns
-                    }
-                default: break
-                }
-                
-            } catch {
-                print(error)
+    func search(searchstring:String, path:String, results:String, sortby:String, sortdir:String) {
+        // have to check token exists before search because @published fires automatically gains willSet so it fires on init.
+        // Is there a way to check the token exists before publishing? needs research cos the if loop is bad juju as it can't have an else statement.
+        if self.token != "" {
+            self.filesToDisplay = false
+            
+            //Safely Construct URL
+            var components = URLComponents()
+            components.scheme = "https"
+            components.host = self.hostname
+            components.port = Int(self.port)
+            components.path = "/qsirch/static/api/search"
+            components.queryItems = [
+                URLQueryItem(name: "q", value: searchstring.stringByAddingPercentEncodingForFormData(plusForSpace: true)),
+                URLQueryItem(name: "auth_token", value: self.token)
+            ]
+            if (path != "All") {
+                components.queryItems!.append(URLQueryItem(name: "path", value: path))
             }
+            components.queryItems!.append(URLQueryItem(name: "limit", value: results))
+            components.queryItems!.append(URLQueryItem(name: "sort_by", value: sortby))
+            var sorteddir = sortdir
+            if (sortdir == "default") {
+                sorteddir = "desc"
+            }
+            components.queryItems!.append(URLQueryItem(name: "sort_dir", value: sorteddir))
+            
+            // Make sure URL actually got constructed
+            guard let searchURL = components.url else { return }
+            let task = URLSession.shared.dataTask(with: searchURL) { (data, response, error) in
+                do {
+                    guard let data = data else { return }
+                    let httpResponse = response as? HTTPURLResponse
+                    switch httpResponse!.statusCode as Int {
+                    case 200:
+                        let fileList = try! JSONDecoder().decode(SearchReturn.self, from: data)
+                        DispatchQueue.main.async {
+                            self.FileList = fileList
+                            if self.FileList!.total > 0 {
+                                self.filesToDisplay = true
+                            } else {
+                                self.filesToDisplay = false
+                            }
+                        }
+                    case 400...500:
+                        let errorReturns = try JSONDecoder().decode(ErrorReturn.self, from: data)
+                        DispatchQueue.main.async {
+                            self.ErrorReturned = errorReturns
+                        }
+                    default: break
+                    }
+                    
+                } catch {
+                    print(error)
+                }
+            }
+            task.resume()
         }
-        task.resume()
     }
 }

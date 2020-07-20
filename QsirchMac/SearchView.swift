@@ -49,7 +49,6 @@ func iconGrabber(path:String, name:String, ext:String?) -> NSImage! {
     }
 }
 
-
 func checkDriveMounted(path:String) -> Bool {
     //let fullPath = URL(string: path)
     let split = path.components(separatedBy: "/")
@@ -77,63 +76,48 @@ func checkDriveMounted(path:String) -> Bool {
 struct SearchBar: View {
     @EnvironmentObject var networkManager:NetworkManager
     
-    /* Drive Selector
-    @State var drive = "All"
-    private var driveProxy:Binding<String> {
-        Binding<String>(get: { self.drive }, set: {
-            self.drive = $0
+    // Drive Selector
+    var driveProxy:Binding<String> {
+        Binding<String>(get: { self.networkManager.drive }, set: {
+            self.networkManager.drive = $0
             self.commitSearch()
         })
     }
     // Results Selector
-    @State var results = "25"
-    private var resultsProxy:Binding<String> {
-        Binding<String>(get: { self.results }, set: {
-            self.results = $0
+    var resultsProxy:Binding<String> {
+        Binding<String>(get: { self.networkManager.results }, set: {
+            self.networkManager.results = $0
             self.commitSearch()
         })
     }
     // Sort By Selector
-    @State var sortby = "relevance"
-    private var sortbyProxy:Binding<String> {
-        Binding<String>(get: { self.sortby }, set: {
-            self.sortby = $0
+    var sortbyProxy:Binding<String> {
+        Binding<String>(get: { self.networkManager.sortby }, set: {
+            self.networkManager.sortby = $0
             self.commitSearch()
         })
     }
     // Sort Direction Selector
-    @State var sortdir:String = "default"
-    private var sortdirProxy:Binding<String> {
-        Binding<String>(get: { self.sortdir }, set: {
-            self.sortdir = $0
+    var sortdirProxy:Binding<String> {
+        Binding<String>(get: { self.networkManager.sortdir }, set: {
+            self.networkManager.sortdir = $0
             self.commitSearch()
         })
     }
-    // No way to sort binding debounce
-    /* Sort Direction Selector
-    @State var searchField:String = ""
-    private var searchfieldProxy:Binding<String> {
-        Binding<String>(get: { self.searchField }, set: {
-            self.searchField = $0
-            self.commitSearch()
-        })
-    }
- */
- */
-    //@State var searchField:String = ""
+    
     
     private func commitSearch() -> Void {
-            self.networkManager.search(hostname: self.networkManager.hostname,
-                port: self.networkManager.port,
-                searchstring: self.networkManager.searchField,
-                token: self.networkManager.token, path: self.networkManager.drive, results: self.networkManager.results, sortby: self.networkManager.sortby, sortdir: self.networkManager.sortdir)
+        self.networkManager.search(searchstring: self.networkManager.searchField,
+                                   path: self.networkManager.drive,
+                                   results: self.networkManager.results,
+                                   sortby: self.networkManager.sortby,
+                                   sortdir: self.networkManager.sortdir)
     }
         
     var body: some View {
         VStack {
             HStack(alignment: .center, spacing: 10) {
                 Text("􀊫").font(.largeTitle).foregroundColor(.primary)
-                // On stop typing call the search function!
                 TextField("Search", text: $networkManager.searchField)
                     .textFieldStyle(PlainTextFieldStyle())
                     .foregroundColor(.primary)
@@ -155,7 +139,7 @@ struct SearchBar: View {
             HStack(alignment: .center) {
                 if (networkManager.drivesToDisplay == true){
                     ScrollView(.horizontal) {
-                        Picker(selection: $networkManager.drive, label: Text("Select Drive")) {
+                        Picker(selection: driveProxy, label: Text("Select Drive")) {
                             Text("All").tag("All")
                             
                             ForEach(networkManager.DrivesList!.items){ drivename in
@@ -166,14 +150,14 @@ struct SearchBar: View {
                     }
                 }
                 Spacer()
-                Picker(selection: $networkManager.results, label: Text("Results")) {
+                Picker(selection: resultsProxy, label: Text("Results")) {
                     Text("Results").tag("25")
                     Text("50").tag("50")
                     Text("100").tag("100")
                     Text("200").tag("200")
                     }.pickerStyle(PopUpButtonPickerStyle()).labelsHidden().frame(width: 85)
                 Divider().frame(height: 20)
-                Picker(selection: $networkManager.sortby, label: Text("Sort By")) {
+                Picker(selection: sortbyProxy, label: Text("Sort By")) {
                     Text("Sort By").tag("relevance")
                     Text("Name").tag("name")
                     Text("Size").tag("size")
@@ -181,7 +165,7 @@ struct SearchBar: View {
                     Text("Modified").tag("modified")
                 }.pickerStyle(PopUpButtonPickerStyle()).labelsHidden().frame(width: 85)
                 Divider().frame(height: 20)
-                Picker(selection: $networkManager.sortdir, label: Text("Sort 􀄬")) {
+                Picker(selection: sortdirProxy, label: Text("Sort 􀄬")) {
                     Text("Sort 􀄬").tag("default")
                     Text("Desc 􀄩").tag("desc")
                     Text("Asc 􀄨").tag("asc")
@@ -235,6 +219,7 @@ struct FileDetail: View {
                     print("file does not exist")
                 }
             } else {
+                
                 print("drive not mounted")
             }
         }
@@ -273,18 +258,18 @@ struct SearchView: View {
                     Text("No Results Found").font(.headline)
                 }.padding()
             }
-            //if (networkManager.ErrorReturned?.error.message != nil) {
+            if (networkManager.ErrorReturned?.error.message != nil) {
                 HStack {
                     Text("\(networkManager.ErrorReturned?.error.message ?? "Unknown Error")").font(.headline)
                 }.padding()
-            //}
-        }
+            }
+        }.cornerRadius(10, antialiased: true)
     }
 }
 
 // MARK: - Preview Loader
 struct SearchView_Previews: PreviewProvider {
     static var previews: some View {
-        SearchView().environmentObject(NetworkManager()).environmentObject(UserSettings())
+        SearchView().environmentObject(NetworkManager())
     }
 }
