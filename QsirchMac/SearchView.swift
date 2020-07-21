@@ -9,7 +9,6 @@
 import SwiftUI
 import QuickLookThumbnailing
 
-
 // This extension removes the focus ring entirely.
 extension NSTextField {
     open override var focusRingType: NSFocusRingType {
@@ -21,31 +20,33 @@ extension NSTextField {
 let previewGenerator = QLThumbnailGenerator()
 
 
-
-func pathBuilder(path:String, name:String, ext:String?) -> String? {
+// Returns tuple with both URL and String
+func pathBuilder(path:String, name:String, ext:String?) -> (String?, URL) {
     if let ext = ext {
         var returnURL = URL(string: "/Volumes/")!.appendingPathComponent(path).appendingPathComponent(name)
         returnURL = returnURL.appendingPathExtension(ext)
-        return String(returnURL.absoluteString).removingPercentEncoding
+        return (String(returnURL.absoluteString).removingPercentEncoding, URL(fileURLWithPath: (String(returnURL.absoluteString).removingPercentEncoding!)) )
     } else {
         let returnURL = URL(string: "/Volumes/")!.appendingPathComponent(path).appendingPathComponent(name)
-        return String(returnURL.absoluteString).removingPercentEncoding
+        return (String(returnURL.absoluteString).removingPercentEncoding, URL(fileURLWithPath: (String(returnURL.absoluteString).removingPercentEncoding!)) )
     }
 }
-//DEPRECATED? have inlined...
-func iconGrabber(path:String, name:String, ext:String?) -> NSImage! {
-    if let builtPath = pathBuilder(path: path, name: name, ext: ext) {
-        if let rep = NSWorkspace.shared.icon(forFile: "/Volumes/\(builtPath)")
-            // Make sure to change the Width/Height for row size!
-            .bestRepresentation(for: NSRect(x: 0, y: 0, width: 32, height: 32), context: nil, hints: nil) {
-            let image = NSImage(size: rep.size)
-            image.addRepresentation(rep)
-            return image
-        } else {
-            return nil
-        }
+// Rewrite with size!  Also add fileURL
+func iconGrabber(path:String, name:String, ext:String?, width:Int, height:Int) -> NSImage {
+    if ext != nil {
+        let rep = NSWorkspace.shared.icon(forFileType: ext!)
+        // Make sure to change the Width/Height for row size!
+        .bestRepresentation(for: NSRect(x: 0, y: 0, width: width, height: height), context: nil, hints: nil)
+        let image = NSImage(size: rep!.size)
+        image.addRepresentation(rep!)
+        return image
     } else {
-        return nil
+        let rep = NSWorkspace.shared.icon(forFile: pathBuilder(path: path, name: name, ext: ext).0!)
+        // Make sure to change the Width/Height for row size!
+        .bestRepresentation(for: NSRect(x: 0, y: 0, width: width, height: height), context: nil, hints: nil)
+        let image = NSImage(size: rep!.size)
+        image.addRepresentation(rep!)
+        return image
     }
 }
 
@@ -70,7 +71,30 @@ func checkDriveMounted(path:String) -> Bool {
     } else {
         return false
     }
+}
+
+// MARK: - Main Search View
+struct SearchView: View {
+    @EnvironmentObject var networkManager:NetworkManager
     
+    var body: some View {
+        VStack {
+            SearchBar()
+            if networkManager.filesToDisplay {
+                ResultsView()
+            }
+            if (networkManager.FileList?.total == 0) {
+                HStack {
+                    Text("No Results Found").font(.headline)
+                }.padding()
+            }
+            if (networkManager.ErrorReturned?.error.message != nil) {
+                HStack {
+                    Text("\(networkManager.ErrorReturned?.error.message ?? "Unknown Error")").font(.headline)
+                }.padding()
+            }
+        }.background(Color(.windowBackgroundColor))
+    }
 }
 
 // MARK: - Draw the Search Bar
@@ -177,65 +201,6 @@ struct SearchBar: View {
     }
 }
 
-// MARK: - File Row
-struct FileRow: View {
-    var fileRow: SearchItem
-    var body: some View {
-        HStack {
-            if checkDriveMounted(path: self.fileRow.path) {
-                //if FileManager.default.fileExists(atPath: pathBuilder(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension)!) {
-                        //ADD Image from path with getIcon()
-                VStack(alignment: .leading) {
-                    if FileManager.default.fileExists(atPath: pathBuilder(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension)!) {
-                        Image(nsImage: NSWorkspace.shared.icon(forFile: pathBuilder(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension)!))
-                    }
-                    else {
-                        Text("􀍼").foregroundColor(.red).font(.title)
-                    }
-                    //Image(nsImage: iconGrabber(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension))
-                }
-            }
-            VStack(alignment: .leading) {
-                Text(fileRow.name).font(Font.system(size: 12, weight: .regular, design: .default))
-                Text(pathBuilder(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension)!).font(Font.system(size: 10, weight: .regular, design: .default))
-            }
-        }.padding()
-    }
-}
-// MARK: - File Detail
-struct FileDetail: View {
-    var fileDetail: SearchItem
-    
-    var body: some View {
-        VStack {
-            //Thumbnail here
-            if FileManager.default.fileExists(atPath: pathBuilder(path: self.fileDetail.path, name: self.fileDetail.name, ext: self.fileDetail.itemExtension)!) {
-                Image(nsImage: NSWorkspace.shared.icon(forFile: pathBuilder(path: self.fileDetail.path, name: self.fileDetail.name, ext: self.fileDetail.itemExtension)!))
-            }
-            else {
-                Text("􀍼").foregroundColor(.red).font(.title)
-            }
-            //File Path
-            if (fileDetail.itemExtension) != nil {
-                Text(fileDetail.name + "." + fileDetail.itemExtension!).font(Font.system(size: 14, weight: .semibold, design: .default))
-            } else {
-                Text(fileDetail.name).font(Font.system(size: 14, weight: .semibold, design: .default))
-            }
-            Text(fileDetail.created).font(Font.system(size: 12, weight: .regular, design: .default))
-        }.frame(minWidth:250, idealWidth:300, maxWidth:.infinity, maxHeight: .infinity).background(Color.white).padding().onTapGesture(count: 2) {
-            if checkDriveMounted(path: self.fileDetail.path) {
-                if FileManager.default.fileExists(atPath: pathBuilder(path: self.fileDetail.path, name: self.fileDetail.name, ext: self.fileDetail.itemExtension)! ) {
-                    NSWorkspace.shared.selectFile(pathBuilder(path: self.fileDetail.path, name: self.fileDetail.name, ext: self.fileDetail.itemExtension), inFileViewerRootedAtPath: "")
-                } else {
-                    print("file does not exist")
-                }
-            } else {
-                
-                print("drive not mounted")
-            }
-        }.background(Color(.white))
-    }
-}
 // MARK: - Search Results
 struct ResultsView: View {
     @EnvironmentObject var networkManager:NetworkManager
@@ -254,27 +219,101 @@ struct ResultsView: View {
         }
     }
 }
-// MARK: - Main Search View
-struct SearchView: View {
-    @EnvironmentObject var networkManager:NetworkManager
+
+// MARK: - File Row
+struct FileRow: View {
+    var fileRow: SearchItem
+    var body: some View {
+        HStack {
+            if checkDriveMounted(path: self.fileRow.path) {
+                VStack(alignment: .leading) {
+                    Image(nsImage: iconGrabber(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension!, width: 32, height: 32))
+                    if FileManager.default.fileExists(atPath: pathBuilder(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension).0! ) {
+                        Image(nsImage: NSWorkspace.shared.icon(forFile: pathBuilder(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension).0!))
+                    }
+                    else {
+                        Text("􀍼").foregroundColor(.red).font(.title)
+                    }
+                }
+            }
+            VStack(alignment: .leading) {
+                Text(fileRow.name).font(Font.system(size: 12, weight: .regular, design: .default))
+                Text(pathBuilder(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension).0!).font(Font.system(size: 10, weight: .regular, design: .default))
+            }
+        }.padding()
+    }
+}
+// MARK: - File Detail
+struct FileDetail: View {
+    var fileDetail: SearchItem
     
     var body: some View {
         VStack {
-            SearchBar()
-            if networkManager.filesToDisplay {
-                ResultsView()
+            //Thumbnail here
+            if FileManager.default.fileExists(atPath: pathBuilder(path: self.fileDetail.path, name: self.fileDetail.name, ext: self.fileDetail.itemExtension).0!) {
+                ThumbnailView(url: pathBuilder(path: self.fileDetail.path, name: self.fileDetail.name, ext: self.fileDetail.itemExtension).1, fileDetail: fileDetail)
             }
-            if (networkManager.FileList?.total == 0) {
-                HStack {
-                    Text("No Results Found").font(.headline)
-                }.padding()
+            else {
+                Text("􀍼").foregroundColor(.red).font(.title)
             }
-            if (networkManager.ErrorReturned?.error.message != nil) {
-                HStack {
-                    Text("\(networkManager.ErrorReturned?.error.message ?? "Unknown Error")").font(.headline)
-                }.padding()
+            //File Path
+            if (fileDetail.itemExtension) != nil {
+                Text(fileDetail.name + "." + fileDetail.itemExtension!).font(Font.system(size: 14, weight: .semibold, design: .default))
+            } else {
+                Text(fileDetail.name).font(Font.system(size: 14, weight: .semibold, design: .default))
             }
-        }.background(Color(.windowBackgroundColor))
+            Text(fileDetail.created).font(Font.system(size: 12, weight: .regular, design: .default))
+        }.frame(minWidth:250, idealWidth:300, maxWidth:.infinity, maxHeight: .infinity).background(Color.white).padding().onTapGesture(count: 2) {
+            if checkDriveMounted(path: self.fileDetail.path) {
+                if FileManager.default.fileExists(atPath: pathBuilder(path: self.fileDetail.path, name: self.fileDetail.name, ext: self.fileDetail.itemExtension).0! ) {
+                    NSWorkspace.shared.selectFile(pathBuilder(path: self.fileDetail.path, name: self.fileDetail.name, ext: self.fileDetail.itemExtension).0, inFileViewerRootedAtPath: "")
+                } else {
+                    print("file does not exist")
+                }
+            } else {
+                
+                print("drive not mounted")
+            }
+        }.background(Color(.white))
+    }
+    
+    
+}
+
+// MARK: - Thumbnail View
+struct ThumbnailView: View {
+    let url: URL
+    var fileDetail: SearchItem
+    @State private var thumbPresent: Bool?
+    @State private var thumb: CGImage?
+    
+    var body: some View {
+        Group {
+            if thumb != nil && thumbPresent == true {
+                Image(decorative: self.thumb!, scale: (NSScreen.main?.backingScaleFactor)!)
+            } else {
+                Image(nsImage: NSWorkspace.shared.icon(forFile: pathBuilder(path: self.fileDetail.path, name: self.fileDetail.name, ext: self.fileDetail.itemExtension).0!))
+            }
+        }.onAppear {
+            self.generateThumbnail(url: pathBuilder(path: self.fileDetail.path, name: self.fileDetail.name, ext: self.fileDetail.itemExtension).1)
+        }
+    }
+    
+    
+    func generateThumbnail(url: URL) {
+        let size: CGSize = CGSize(width: 300, height: 300)
+        let request = QLThumbnailGenerator.Request(fileAt: url, size: size, scale: (NSScreen.main?.backingScaleFactor)!, representationTypes: .thumbnail)
+        let generator = QLThumbnailGenerator.shared
+        generator.generateRepresentations(for: request) { (thumbnail, type, error) in
+            DispatchQueue.main.async {
+                if thumbnail == nil {
+                    self.thumbPresent = false
+                } else {
+                    self.thumb = thumbnail!.cgImage
+                    self.thumbPresent = true
+                }
+            }
+        }
     }
 }
 

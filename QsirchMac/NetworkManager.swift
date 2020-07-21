@@ -162,6 +162,7 @@ class NetworkManager: ObservableObject {
     func search(searchstring:String, path:String, results:String, sortby:String, sortdir:String) {
         // have to check token exists before search because @published fires automatically gains willSet so it fires on init.
         // Is there a way to check the token exists before publishing? needs research cos the if loop is bad juju as it can't have an else statement.
+        self.filesToDisplay = false
         if (self.token != "" && self.searchField != "") {
             self.filesToDisplay = false
             
@@ -218,4 +219,5 @@ class NetworkManager: ObservableObject {
             task.resume()
         }
     }
+
 }
