@@ -16,6 +16,15 @@ extension NSTextField {
         set { }
     }
 }
+// Overide stupid white list
+extension NSTableView {
+    open override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        backgroundColor = .clear
+        enclosingScrollView?.drawsBackground = false
+        enclosingScrollView?.backgroundColor = .clear
+    }
+}
 
 let previewGenerator = QLThumbnailGenerator()
 
@@ -31,26 +40,15 @@ func pathBuilder(path:String, name:String, ext:String?) -> (String?, URL) {
         return (String(returnURL.absoluteString).removingPercentEncoding, URL(fileURLWithPath: (String(returnURL.absoluteString).removingPercentEncoding!)) )
     }
 }
-// Rewrite with size!  Also add fileURL
+// Returns NSImage for icon at path
 func iconGrabber(path:String, name:String, ext:String?, width:Int, height:Int) -> NSImage {
-    if ext != nil {
-        let rep = NSWorkspace.shared.icon(forFileType: ext!)
-        // Make sure to change the Width/Height for row size!
-        .bestRepresentation(for: NSRect(x: 0, y: 0, width: width, height: height), context: nil, hints: nil)
-        let image = NSImage(size: rep!.size)
-        image.addRepresentation(rep!)
-        return image
-    } else {
-        let rep = NSWorkspace.shared.icon(forFile: pathBuilder(path: path, name: name, ext: ext).0!)
-        // Make sure to change the Width/Height for row size!
-        .bestRepresentation(for: NSRect(x: 0, y: 0, width: width, height: height), context: nil, hints: nil)
-        let image = NSImage(size: rep!.size)
-        image.addRepresentation(rep!)
-        return image
-    }
+    let builtPath = pathBuilder(path: path, name: name, ext: ext)
+    let rep = NSWorkspace.shared.icon(forFile: builtPath.0!).bestRepresentation(for: NSRect(x: 0, y: 0, width: width, height: height), context: nil, hints: nil)
+    let image = NSImage(size: rep!.size)
+    image.addRepresentation(rep!)
+    return image
 }
-
-
+// Returns true if drive mounted for path
 func checkDriveMounted(path:String) -> Bool {
     //let fullPath = URL(string: path)
     let split = path.components(separatedBy: "/")
@@ -72,28 +70,60 @@ func checkDriveMounted(path:String) -> Bool {
         return false
     }
 }
+func formatBytes(bytes:Int) -> String {
+        let formatter = ByteCountFormatter()
+        formatter.allowedUnits = .useAll
+        formatter.countStyle = .file
+        formatter.includesUnit = true
+        formatter.isAdaptive = true
+        let returnBytes = formatter.string(fromByteCount: Int64(bytes)) // '123.46 GB'
+        return returnBytes
+}
 
+
+struct VisualEffectView: NSViewRepresentable
+{
+    var material: NSVisualEffectView.Material
+    var blendingMode: NSVisualEffectView.BlendingMode
+
+    func makeNSView(context: Context) -> NSVisualEffectView
+    {
+        let visualEffectView = NSVisualEffectView()
+        visualEffectView.material = material
+        visualEffectView.blendingMode = blendingMode
+        visualEffectView.state = NSVisualEffectView.State.active
+        return visualEffectView
+    }
+
+    func updateNSView(_ visualEffectView: NSVisualEffectView, context: Context)
+    {
+        visualEffectView.material = material
+        visualEffectView.blendingMode = blendingMode
+    }
+}
 // MARK: - Main Search View
 struct SearchView: View {
     @EnvironmentObject var networkManager:NetworkManager
     
     var body: some View {
-        VStack {
-            SearchBar()
+        VStack(spacing: 0) {
+            SearchBar().background(Color(.windowBackgroundColor)).cornerRadius(0)//corner radius override - stops the weird double corner at the bottom of search bar!
             if networkManager.filesToDisplay {
-                ResultsView()
+                ResultsView().background(VisualEffectView(material: NSVisualEffectView.Material.popover, blendingMode: NSVisualEffectView.BlendingMode.behindWindow))
             }
             if (networkManager.FileList?.total == 0) {
                 HStack {
                     Text("No Results Found").font(.headline)
-                }.padding()
+                }.padding().background(VisualEffectView(material: NSVisualEffectView.Material.popover, blendingMode: NSVisualEffectView.BlendingMode.behindWindow))
+
             }
             if (networkManager.ErrorReturned?.error.message != nil) {
                 HStack {
                     Text("\(networkManager.ErrorReturned?.error.message ?? "Unknown Error")").font(.headline)
-                }.padding()
+                }.padding().background(VisualEffectView(material: NSVisualEffectView.Material.popover, blendingMode: NSVisualEffectView.BlendingMode.behindWindow))
+
             }
-        }.background(Color(.windowBackgroundColor))
+        }
     }
 }
 
@@ -142,11 +172,10 @@ struct SearchBar: View {
     var body: some View {
         VStack {
             HStack(alignment: .center, spacing: 10) {
-                Text("􀊫").font(.largeTitle).foregroundColor(.primary)
+                Text("􀊫").font(.largeTitle).foregroundColor(Color(.darkGray))
                 TextField("Search", text: $networkManager.searchField)
                     .textFieldStyle(PlainTextFieldStyle())
-                    .foregroundColor(.primary)
-                    .background(Color.clear)
+                    .foregroundColor(Color(.darkGray))
                     .font(Font.system(size: 25, weight: .light, design: .default))
                     .fixedSize()
                 Spacer()
@@ -154,12 +183,9 @@ struct SearchBar: View {
                     NSApplication.shared.keyWindow?.close()
                     NSApp.sendAction(#selector(AppDelegate.openPreferencesWindow), to: nil, from:nil)
                 }) {
-                    Text("􀍟").font(.largeTitle).foregroundColor(.primary)
+                    Text("􀍟").font(.largeTitle).foregroundColor(Color(.darkGray))
                 }.buttonStyle(PlainButtonStyle())
-            }
-            .foregroundColor(.secondary)
-            .padding([.top, .leading, .trailing], 20.0)
-            .background(Color.clear)
+            }.padding([.top, .leading, .trailing], 20.0)
             Divider()
             HStack(alignment: .center) {
                 if (networkManager.drivesToDisplay == true){
@@ -180,7 +206,7 @@ struct SearchBar: View {
                     Text("50").tag("50")
                     Text("100").tag("100")
                     Text("200").tag("200")
-                    }.pickerStyle(PopUpButtonPickerStyle()).labelsHidden().frame(width: 85)
+                }.pickerStyle(PopUpButtonPickerStyle()).labelsHidden().frame(width: 85)
                 Divider().frame(height: 20)
                 Picker(selection: sortbyProxy, label: Text("Sort By")) {
                     Text("Sort By").tag("relevance")
@@ -195,7 +221,7 @@ struct SearchBar: View {
                     Text("Desc 􀄩").tag("desc")
                     Text("Asc 􀄨").tag("asc")
                 }.pickerStyle(PopUpButtonPickerStyle()).labelsHidden().frame(width: 85)
-            }.padding(.horizontal)
+                }.padding(.horizontal)
             Divider()
         }
     }
@@ -205,20 +231,20 @@ struct SearchBar: View {
 struct ResultsView: View {
     @EnvironmentObject var networkManager:NetworkManager
     var body: some View {
-        VStack {
-            NavigationView {
-                List {
-                    ForEach(networkManager.FileList!.items) { file in
-                        NavigationLink(destination: FileDetail(fileDetail: file)) {
-                            FileRow(fileRow: file)
-                        }
+        NavigationView {
+            List {
+                ForEach(networkManager.FileList!.items) { file in
+                    NavigationLink(destination: FileDetail(fileDetail: file)) {
+                        FileRow(fileRow: file)
                     }
-                }.frame(minWidth: 400, maxWidth: .infinity, alignment: .leading)
-                Rectangle().frame(maxWidth: 0, maxHeight: .infinity)
-            }.frame(minHeight:500, idealHeight: 550, maxHeight: .infinity)
-        }
+                }
+            }
+            Rectangle().frame(maxWidth: 0, maxHeight: .infinity)
+        }.frame(minHeight:500, idealHeight: 550, maxHeight: .infinity)
     }
 }
+
+
 
 // MARK: - File Row
 struct FileRow: View {
@@ -227,9 +253,8 @@ struct FileRow: View {
         HStack {
             if checkDriveMounted(path: self.fileRow.path) {
                 VStack(alignment: .leading) {
-                    Image(nsImage: iconGrabber(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension!, width: 32, height: 32))
                     if FileManager.default.fileExists(atPath: pathBuilder(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension).0! ) {
-                        Image(nsImage: NSWorkspace.shared.icon(forFile: pathBuilder(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension).0!))
+                        Image(nsImage: iconGrabber(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension, width: 32, height: 32))
                     }
                     else {
                         Text("􀍼").foregroundColor(.red).font(.title)
@@ -238,43 +263,85 @@ struct FileRow: View {
             }
             VStack(alignment: .leading) {
                 Text(fileRow.name).font(Font.system(size: 12, weight: .regular, design: .default))
-                Text(pathBuilder(path: self.fileRow.path, name: self.fileRow.name, ext: self.fileRow.itemExtension).0!).font(Font.system(size: 10, weight: .regular, design: .default))
+                Text(fileRow.path).font(Font.system(size: 8, weight: .light, design: .default))
+                
             }
-        }.padding()
+        }.frame(minWidth: 400, maxWidth: .infinity, alignment: .leading)
+        
     }
 }
 // MARK: - File Detail
 struct FileDetail: View {
     var fileDetail: SearchItem
     
+    @State var alertStatus:Bool = false
+    @State var alertHeader:String = ""
+    @State var alertMessage:String = ""
+    
+    
+    
     var body: some View {
         VStack {
-            //Thumbnail here
-            if FileManager.default.fileExists(atPath: pathBuilder(path: self.fileDetail.path, name: self.fileDetail.name, ext: self.fileDetail.itemExtension).0!) {
-                ThumbnailView(url: pathBuilder(path: self.fileDetail.path, name: self.fileDetail.name, ext: self.fileDetail.itemExtension).1, fileDetail: fileDetail)
+            Spacer()
+            HStack {
+                //Thumbnail here
+                if FileManager.default.fileExists(atPath: pathBuilder(path: self.fileDetail.path, name: self.fileDetail.name, ext: self.fileDetail.itemExtension).0!) {
+                    ThumbnailView(url: pathBuilder(path: self.fileDetail.path, name: self.fileDetail.name, ext: self.fileDetail.itemExtension).1, fileDetail: fileDetail)
+                }
+                else {
+                    Text("􀍼").foregroundColor(.red).font(Font.system(size: 48, weight: .regular, design: .default))
+                }
             }
-            else {
-                Text("􀍼").foregroundColor(.red).font(.title)
+            Spacer()
+            VStack {
+                Divider()
+                Text(fileDetail.name).font(Font.system(size: 14, weight: .regular, design: .default)).multilineTextAlignment(.center).padding(.vertical).foregroundColor(Color(.black))
             }
-            //File Path
-            if (fileDetail.itemExtension) != nil {
-                Text(fileDetail.name + "." + fileDetail.itemExtension!).font(Font.system(size: 14, weight: .semibold, design: .default))
-            } else {
-                Text(fileDetail.name).font(Font.system(size: 14, weight: .semibold, design: .default))
+            
+            HStack(spacing:2) {
+                Spacer()
+                Text("Size: ").font(Font.system(size: 11, weight: .regular, design: .default)).foregroundColor(Color(.darkGray))
+                Text(formatBytes(bytes: fileDetail.size)).font(Font.system(size: 11, weight: .regular, design: .default)).foregroundColor(Color(.black))
+                Spacer()
+            
             }
-            Text(fileDetail.created).font(Font.system(size: 12, weight: .regular, design: .default))
-        }.frame(minWidth:250, idealWidth:300, maxWidth:.infinity, maxHeight: .infinity).background(Color.white).padding().onTapGesture(count: 2) {
+            HStack(spacing:2) {
+                Spacer()
+                Text("Date Modified: ").font(Font.system(size: 11, weight: .regular, design: .default)).foregroundColor(Color(.darkGray))
+                Text(fileDetail.modified).font(Font.system(size: 11, weight: .regular, design: .default)).foregroundColor(Color(.black))
+                Spacer()
+            }
+            HStack(spacing:2) {
+                Spacer()
+                Text("Date Created: ").font(Font.system(size: 11, weight: .regular, design: .default)).foregroundColor(Color(.darkGray))
+                Text(fileDetail.created).font(Font.system(size: 11, weight: .regular, design: .default)).foregroundColor(Color(.black))
+                Spacer()
+            }
+            if (fileDetail.content?.count != nil) {
+                VStack {
+                    Text("Content:").font(Font.system(size: 11, weight: .regular, design: .default)).foregroundColor(Color(.darkGray))
+                    Text(fileDetail.content ?? "N/A").font(Font.system(size: 12, weight: .regular, design: .default)).multilineTextAlignment(.center).font(Font.system(size: 11, weight: .regular, design: .default)).foregroundColor(Color(.black))
+                }.padding()
+            }
+            
+        }.frame(minWidth:350, idealWidth:350, maxWidth:.infinity, maxHeight: .infinity).padding().onTapGesture(count: 2) {
             if checkDriveMounted(path: self.fileDetail.path) {
                 if FileManager.default.fileExists(atPath: pathBuilder(path: self.fileDetail.path, name: self.fileDetail.name, ext: self.fileDetail.itemExtension).0! ) {
                     NSWorkspace.shared.selectFile(pathBuilder(path: self.fileDetail.path, name: self.fileDetail.name, ext: self.fileDetail.itemExtension).0, inFileViewerRootedAtPath: "")
                 } else {
-                    print("file does not exist")
+                    self.alertStatus = true
+                    self.alertHeader = "File Missing"
+                    self.alertMessage = "The file is missing at this location."
                 }
             } else {
-                
-                print("drive not mounted")
+                    self.alertStatus = true
+                    self.alertHeader = "Drive Missing"
+                    self.alertMessage = "The drive for this file is not mounted, please mount and try again."
+                            
             }
-        }.background(Color(.white))
+        }.alert(isPresented: $alertStatus) {
+            Alert(title: Text(alertHeader), message: Text(alertMessage))
+        }
     }
     
     
@@ -290,9 +357,11 @@ struct ThumbnailView: View {
     var body: some View {
         Group {
             if thumb != nil && thumbPresent == true {
-                Image(decorative: self.thumb!, scale: (NSScreen.main?.backingScaleFactor)!)
+                Image(decorative: self.thumb!, scale: (NSScreen.main?.backingScaleFactor)!).resizable()
+                .aspectRatio(contentMode: .fit)
             } else {
-                Image(nsImage: NSWorkspace.shared.icon(forFile: pathBuilder(path: self.fileDetail.path, name: self.fileDetail.name, ext: self.fileDetail.itemExtension).0!))
+                Image(nsImage: iconGrabber(path: fileDetail.path, name: fileDetail.name, ext: fileDetail.itemExtension, width: 64, height: 64)).resizable()
+                .aspectRatio(contentMode: .fit)
             }
         }.onAppear {
             self.generateThumbnail(url: pathBuilder(path: self.fileDetail.path, name: self.fileDetail.name, ext: self.fileDetail.itemExtension).1)
@@ -301,7 +370,7 @@ struct ThumbnailView: View {
     
     
     func generateThumbnail(url: URL) {
-        let size: CGSize = CGSize(width: 300, height: 300)
+        let size: CGSize = CGSize(width: 500, height: 500)
         let request = QLThumbnailGenerator.Request(fileAt: url, size: size, scale: (NSScreen.main?.backingScaleFactor)!, representationTypes: .thumbnail)
         let generator = QLThumbnailGenerator.shared
         generator.generateRepresentations(for: request) { (thumbnail, type, error) in
