@@ -47,7 +47,6 @@ struct PreferencesView: View {
         if formValidate(){
             if (rememberMe){
                 let defaults = UserDefaults.standard
-                // TODO: - if login successfull {
                 defaults.set(hostnameField, forKey: "hostname")
                 networkManager.hostname = hostnameField
                 defaults.set(usernameField, forKey: "username")
@@ -58,7 +57,6 @@ struct PreferencesView: View {
                 networkManager.port = portField
                 NSApplication.shared.keyWindow?.close()
                 NSApp.sendAction(#selector(AppDelegate.openSearchWindow), to: nil, from:nil)
-                //} TODO...
             } else {
                 let defaults = UserDefaults.standard
                 let dictionary = defaults.dictionaryRepresentation()

@@ -19,6 +19,8 @@ class SWindow: NSWindow {
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
     
+    var statusBarItem: NSStatusItem!
+    
     var searchWindow: SWindow!
     
     var preferencesWindow: NSWindow!
@@ -27,9 +29,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     
     @objc func openPreferencesWindow() {
-        if nil == preferencesWindow {      // create once !!
+        NSApplication.shared.keyWindow?.close() // Close current window
+        if nil == preferencesWindow {      // creates once
             let preferencesView = PreferencesView()
-            // Create the preferences window and set content
             preferencesWindow = NSWindow(
                 contentRect: NSRect(x: 20, y: 20, width: 480, height: 300),
                 styleMask: [.titled, .miniaturizable, .fullSizeContentView],
@@ -43,9 +45,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func openSearchWindow() {
-        if nil == searchWindow {
+        NSApplication.shared.keyWindow?.close() // Close current window
+        if nil == searchWindow {      // creates once
             let searchView = SearchView().cornerRadius(10)
-            // Create the search window and set content
             searchWindow = SWindow(
                 contentRect: NSRect(x: 0, y: 0, width: 850, height: 500),
                 styleMask: [.resizable, .fullSizeContentView],
@@ -61,7 +63,27 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         searchWindow.makeKeyAndOrderFront(true)
     }
     
+    // Toggle Window Visibility
+    @objc func toggleSearchWindow(sender: NSStatusBarButton) {
+        if self.searchWindow != nil {
+            if self.searchWindow.isVisible {
+                self.searchWindow.setIsVisible(false)
+            } else {
+                NSApp.activate(ignoringOtherApps: true)
+                self.searchWindow.setIsVisible(true)
+                self.searchWindow.contentViewController?.view.window?.becomeKey()
+            }
+        }
+    }
+    
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        
+        // Create status bar item
+        self.statusBarItem = NSStatusBar.system.statusItem(withLength: CGFloat(NSStatusItem.variableLength))
+        if let button = self.statusBarItem.button {
+            button.image = NSImage(named: "statusbaricon")
+            button.action = #selector(toggleSearchWindow(sender:))
+        }
         
         let defaults = UserDefaults.standard
         
@@ -84,6 +106,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         } else {
             self.openPreferencesWindow()
+        }
+    }
+    
+    func applicationDidResignActive(_ notification: Notification) {
+        if self.searchWindow != nil {
+            self.searchWindow.setIsVisible(false)
         }
     }
     

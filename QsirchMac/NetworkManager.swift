@@ -14,6 +14,8 @@ class NetworkManager: ObservableObject {
     @Published var FileList:SearchReturn?
     @Published var filesToDisplay:Bool = false
     
+    @Published var progressIndicator:Bool = false
+    
     @Published var DrivesList:DriveListReturn?
     @Published var drivesToDisplay:Bool = false
     
@@ -108,7 +110,9 @@ class NetworkManager: ObservableObject {
                     switch httpResponse!.statusCode as Int {
                         case 200:
                             let loginResponse = try JSONDecoder().decode(LoginReturn.self, from: data)
-                            self.token = loginResponse.qqsSid
+                            DispatchQueue.main.async {
+                                self.token = loginResponse.qqsSid
+                            }
                             completion(loginResponse,nil,nil)
                         case 400:
                             let loginResponse = try JSONDecoder().decode(ErrorReturn.self, from: data)
@@ -165,7 +169,7 @@ class NetworkManager: ObservableObject {
         self.filesToDisplay = false
         if (self.token != "" && self.searchField != "") {
             self.filesToDisplay = false
-            
+            self.progressIndicator = true
             //Safely Construct URL
             var components = URLComponents()
             components.scheme = "https"
@@ -200,14 +204,17 @@ class NetworkManager: ObservableObject {
                             self.FileList = fileList
                             if self.FileList!.total > 0 {
                                 self.filesToDisplay = true
+                                self.progressIndicator = false
                             } else {
                                 self.filesToDisplay = false
+                                self.progressIndicator = false
                             }
                         }
                     case 400...500:
                         let errorReturns = try JSONDecoder().decode(ErrorReturn.self, from: data)
                         DispatchQueue.main.async {
                             self.ErrorReturned = errorReturns
+                            self.progressIndicator = false
                         }
                     default: break
                     }

@@ -7,13 +7,19 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		8B0E898F24C32F6D0014397B /* test.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B0E898E24C32F6D0014397B /* test.swift */; };
 		8B49469024C096AE007E44D3 /* LoginModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B49468F24C096AE007E44D3 /* LoginModel.swift */; };
 		8B49469224C0978E007E44D3 /* ErrorModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B49469124C0978E007E44D3 /* ErrorModel.swift */; };
 		8B49469624C09C98007E44D3 /* SearchModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B49469524C09C98007E44D3 /* SearchModel.swift */; };
 		8B49469824C0A15C007E44D3 /* DriveListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B49469724C0A15C007E44D3 /* DriveListModel.swift */; };
+		8B5621BF24CB1BA000BA6726 /* HelperFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B5621BE24CB1BA000BA6726 /* HelperFunctions.swift */; };
 		8B60D7F924B89136002B8806 /* URLEncode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B60D7F824B89136002B8806 /* URLEncode.swift */; };
 		8B74ECD724B4BB330007BF5B /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B74ECD624B4BB330007BF5B /* PreferencesView.swift */; };
+		8BB6307924CEEA9A009B7664 /* SearchBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BB6307824CEEA9A009B7664 /* SearchBarView.swift */; };
+		8BB6307B24CEEAFC009B7664 /* ResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BB6307A24CEEAFC009B7664 /* ResultsView.swift */; };
+		8BB6307D24CEEB87009B7664 /* FileRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BB6307C24CEEB87009B7664 /* FileRowView.swift */; };
+		8BB6307F24CEEBC6009B7664 /* FileDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BB6307E24CEEBC6009B7664 /* FileDetailView.swift */; };
+		8BB6308124CEEBE8009B7664 /* ThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BB6308024CEEBE8009B7664 /* ThumbnailView.swift */; };
+		8BB6308324D0468F009B7664 /* ProgressIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BB6308224D0468F009B7664 /* ProgressIndicatorView.swift */; };
 		8BE8147724B7462F0029BC62 /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BE8147624B7462F0029BC62 /* NetworkManager.swift */; };
 		8BF0927B24AF79D300D94B5E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BF0927A24AF79D300D94B5E /* AppDelegate.swift */; };
 		8BF0927D24AF79D300D94B5E /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BF0927C24AF79D300D94B5E /* SearchView.swift */; };
@@ -42,13 +48,19 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		8B0E898E24C32F6D0014397B /* test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = test.swift; sourceTree = "<group>"; };
 		8B49468F24C096AE007E44D3 /* LoginModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginModel.swift; sourceTree = "<group>"; };
-		8B49469124C0978E007E44D3 /* ErrorModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ErrorModel.swift; path = QsirchMac/Models/ErrorModel.swift; sourceTree = SOURCE_ROOT; };
-		8B49469524C09C98007E44D3 /* SearchModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SearchModel.swift; path = QsirchMac/Models/SearchModel.swift; sourceTree = SOURCE_ROOT; };
-		8B49469724C0A15C007E44D3 /* DriveListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DriveListModel.swift; path = QsirchMac/Models/DriveListModel.swift; sourceTree = SOURCE_ROOT; };
+		8B49469124C0978E007E44D3 /* ErrorModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorModel.swift; sourceTree = "<group>"; };
+		8B49469524C09C98007E44D3 /* SearchModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchModel.swift; sourceTree = "<group>"; };
+		8B49469724C0A15C007E44D3 /* DriveListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveListModel.swift; sourceTree = "<group>"; };
+		8B5621BE24CB1BA000BA6726 /* HelperFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelperFunctions.swift; sourceTree = "<group>"; };
 		8B60D7F824B89136002B8806 /* URLEncode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLEncode.swift; sourceTree = "<group>"; };
 		8B74ECD624B4BB330007BF5B /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
+		8BB6307824CEEA9A009B7664 /* SearchBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchBarView.swift; sourceTree = "<group>"; };
+		8BB6307A24CEEAFC009B7664 /* ResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultsView.swift; sourceTree = "<group>"; };
+		8BB6307C24CEEB87009B7664 /* FileRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileRowView.swift; sourceTree = "<group>"; };
+		8BB6307E24CEEBC6009B7664 /* FileDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileDetailView.swift; sourceTree = "<group>"; };
+		8BB6308024CEEBE8009B7664 /* ThumbnailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThumbnailView.swift; sourceTree = "<group>"; };
+		8BB6308224D0468F009B7664 /* ProgressIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressIndicatorView.swift; sourceTree = "<group>"; };
 		8BE8147624B7462F0029BC62 /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
 		8BF0927724AF79D300D94B5E /* QsirchMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QsirchMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8BF0927A24AF79D300D94B5E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -91,6 +103,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		8B3E9E1B24CEE5EB003D8CA9 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				8BF0927C24AF79D300D94B5E /* SearchView.swift */,
+				8BB6308024CEEBE8009B7664 /* ThumbnailView.swift */,
+				8BB6307E24CEEBC6009B7664 /* FileDetailView.swift */,
+				8BB6307C24CEEB87009B7664 /* FileRowView.swift */,
+				8BB6307A24CEEAFC009B7664 /* ResultsView.swift */,
+				8BB6307824CEEA9A009B7664 /* SearchBarView.swift */,
+				8B74ECD624B4BB330007BF5B /* PreferencesView.swift */,
+				8BB6308224D0468F009B7664 /* ProgressIndicatorView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
 		8B49468E24C096A1007E44D3 /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -105,7 +132,6 @@
 		8BF0926E24AF79D300D94B5E = {
 			isa = PBXGroup;
 			children = (
-				8B0E898E24C32F6D0014397B /* test.swift */,
 				8BF0927924AF79D300D94B5E /* QsirchMac */,
 				8BF0928F24AF79D300D94B5E /* QsirchMacTests */,
 				8BF0929A24AF79D300D94B5E /* QsirchMacUITests */,
@@ -129,9 +155,9 @@
 				8B49468E24C096A1007E44D3 /* Models */,
 				8B60D7F824B89136002B8806 /* URLEncode.swift */,
 				8BF0927A24AF79D300D94B5E /* AppDelegate.swift */,
-				8BF0927C24AF79D300D94B5E /* SearchView.swift */,
-				8B74ECD624B4BB330007BF5B /* PreferencesView.swift */,
+				8B3E9E1B24CEE5EB003D8CA9 /* Views */,
 				8BE8147624B7462F0029BC62 /* NetworkManager.swift */,
+				8B5621BE24CB1BA000BA6726 /* HelperFunctions.swift */,
 				8BF0927E24AF79D300D94B5E /* Assets.xcassets */,
 				8BF0928324AF79D300D94B5E /* Main.storyboard */,
 				8BF0928624AF79D300D94B5E /* Info.plist */,
@@ -299,15 +325,21 @@
 			buildActionMask = 2147483647;
 			files = (
 				8B49469024C096AE007E44D3 /* LoginModel.swift in Sources */,
+				8BB6307B24CEEAFC009B7664 /* ResultsView.swift in Sources */,
 				8BE8147724B7462F0029BC62 /* NetworkManager.swift in Sources */,
+				8BB6308324D0468F009B7664 /* ProgressIndicatorView.swift in Sources */,
+				8BB6307F24CEEBC6009B7664 /* FileDetailView.swift in Sources */,
 				8B49469624C09C98007E44D3 /* SearchModel.swift in Sources */,
 				8BF0927D24AF79D300D94B5E /* SearchView.swift in Sources */,
 				8B60D7F924B89136002B8806 /* URLEncode.swift in Sources */,
+				8B5621BF24CB1BA000BA6726 /* HelperFunctions.swift in Sources */,
 				8B74ECD724B4BB330007BF5B /* PreferencesView.swift in Sources */,
+				8BB6307924CEEA9A009B7664 /* SearchBarView.swift in Sources */,
 				8BF0927B24AF79D300D94B5E /* AppDelegate.swift in Sources */,
 				8B49469824C0A15C007E44D3 /* DriveListModel.swift in Sources */,
+				8BB6308124CEEBE8009B7664 /* ThumbnailView.swift in Sources */,
 				8B49469224C0978E007E44D3 /* ErrorModel.swift in Sources */,
-				8B0E898F24C32F6D0014397B /* test.swift in Sources */,
+				8BB6307D24CEEB87009B7664 /* FileRowView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -472,7 +504,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = QsirchMac/QsirchMac.entitlements;
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"QsirchMac/Preview Content\"";
@@ -496,7 +528,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = QsirchMac/QsirchMac.entitlements;
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"QsirchMac/Preview Content\"";
