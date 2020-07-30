@@ -126,7 +126,7 @@ class NetworkManager: ObservableObject {
                                 self.displayLogin = true
                             }
                         }
-                        if response.statusCode == 400 {
+                        if response.statusCode >= 400 {
                             let decodedData = try JSONDecoder().decode(ErrorReturn.self, from: data)
                             DispatchQueue.main.async {
                                 self.ErrorReturned = decodedData.error.message
@@ -177,7 +177,7 @@ class NetworkManager: ObservableObject {
                                 }
                             }
                         }
-                        if response.statusCode == 401 {
+                        if response.statusCode >= 401 {
                             let decodedData = try JSONDecoder().decode(ErrorReturn.self, from: data)
                             DispatchQueue.main.async {
                                 self.ErrorReturned = "Could not fetch available drives: \(decodedData.error.message)"
@@ -205,7 +205,8 @@ class NetworkManager: ObservableObject {
         // have to check token exists before search because @published fires automatically gains willSet so it fires on init.
         // Is there a way to check the token exists before publishing? needs research cos the if loop is bad juju as it can't have an else statement.
         self.filesToDisplay = false
-        if (self.token != "" && self.searchField != "") {
+        self.displayError = false
+        if (self.LoginReturned?.qqsSid != "" && self.searchField != "") {
             self.filesToDisplay = false
             self.progressIndicator = true
             //Safely Construct URL
@@ -216,7 +217,7 @@ class NetworkManager: ObservableObject {
             components.path = "/qsirch/static/api/search"
             components.queryItems = [
                 URLQueryItem(name: "q", value: searchstring.stringByAddingPercentEncodingForFormData(plusForSpace: true)),
-                URLQueryItem(name: "auth_token", value: self.token)
+                URLQueryItem(name: "auth_token", value: self.LoginReturned?.qqsSid)
             ]
             if (path != "All") {
                 components.queryItems!.append(URLQueryItem(name: "path", value: path))
@@ -238,6 +239,7 @@ class NetworkManager: ObservableObject {
                         DispatchQueue.main.async {
                             self.ErrorReturned = error.localizedDescription
                             self.displayError = true
+                            self.progressIndicator = false
                         }
                         return
                     }

@@ -59,6 +59,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             searchWindow.titlebarAppearsTransparent = true
             searchWindow.isOpaque = false
             searchWindow.backgroundColor = NSColor.clear
+            searchWindow.collectionBehavior = [.canJoinAllSpaces, .transient]
             searchWindow.contentView = NSHostingView(rootView: searchView.environmentObject(networkManager))
         }
         searchWindow.makeKeyAndOrderFront(true)
@@ -81,8 +82,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self.searchWindow.contentViewController?.view.window?.becomeKey()
             }
         }
-       
-            
     }
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
