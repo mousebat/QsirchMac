@@ -18,14 +18,9 @@ struct SearchView: View {
             if networkManager.filesToDisplay {
                 ResultsView().background(VisualEffectView(material: NSVisualEffectView.Material.popover, blendingMode: NSVisualEffectView.BlendingMode.behindWindow))
             }
-            if (networkManager.FileList?.total == 0) {
+            if (networkManager.ErrorReturned != nil) {
                 HStack {
-                    Text("No Results Found").font(.headline)
-                }.padding().background(VisualEffectView(material: NSVisualEffectView.Material.popover, blendingMode: NSVisualEffectView.BlendingMode.behindWindow))
-            }
-            if (networkManager.ErrorReturned?.error.message != nil) {
-                HStack {
-                    Text("\(networkManager.ErrorReturned?.error.message ?? "Unknown Error")").font(.headline)
+                    Text("\(networkManager.ErrorReturned!)").font(.headline)
                 }.padding().background(VisualEffectView(material: NSVisualEffectView.Material.popover, blendingMode: NSVisualEffectView.BlendingMode.behindWindow))
             }
             if (networkManager.progressIndicator == true) {

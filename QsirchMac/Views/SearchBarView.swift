@@ -49,6 +49,8 @@ struct SearchBarView: View {
                                    sortdir: self.networkManager.sortdir)
     }
         
+    
+    
     var body: some View {
         VStack {
             HStack(alignment: .center, spacing: 10) {
@@ -67,6 +69,7 @@ struct SearchBarView: View {
             }.padding([.top, .leading, .trailing], 20.0)
             Divider()
             HStack(alignment: .center) {
+                
                 if (networkManager.drivesToDisplay == true){
                     ScrollView(.horizontal) {
                         Picker(selection: driveProxy, label: Text("Select Drive")) {
@@ -80,6 +83,11 @@ struct SearchBarView: View {
                     }
                 }
                 Spacer()
+                if networkManager.FileList?.total != nil {
+                    Text("Found: " + String(networkManager.FileList!.total)).foregroundColor(Color(.darkGray))
+                    .font(Font.system(size: 14, weight: .light, design: .default))
+                }
+                Divider().frame(height: 20)
                 Picker(selection: resultsProxy, label: Text("Results")) {
                     Text("Results").tag("25")
                     Text("50").tag("50")

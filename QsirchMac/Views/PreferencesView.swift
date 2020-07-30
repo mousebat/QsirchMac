@@ -8,16 +8,19 @@
 
 import SwiftUI
 
-private var portFormatter: NumberFormatter = {
-    let formatter = NumberFormatter()
-    formatter.numberStyle = NumberFormatter.Style.none
-    formatter.usesSignificantDigits = false
-    formatter.minimumIntegerDigits = 0
-    formatter.maximumIntegerDigits = 5
-    formatter.maximum = 65535
-    formatter.minimum = 1
-    return formatter
- }()
+
+extension NumberFormatter {
+    static var port: NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = NumberFormatter.Style.none
+        formatter.usesSignificantDigits = false
+        formatter.minimumIntegerDigits = 0
+        formatter.maximumIntegerDigits = 5
+        formatter.maximum = 65535
+        formatter.minimum = 1
+        return formatter
+    }
+}
 
 struct PreferencesView: View {
     
@@ -29,9 +32,10 @@ struct PreferencesView: View {
     @State var usernameInvalid:Bool = false
     @State var passwordField: String = UserDefaults.standard.string(forKey: "password") ?? ""
     @State var passwordInvalid:Bool = false
-    @State var portField: String = UserDefaults.standard.string(forKey: "port") ?? ""
+    @State var portField:String = UserDefaults.standard.string(forKey: "port") ?? ""
     @State var rememberMe:Bool = true
-    @State var connectionOutput: String = ""
+    
+    
     
     // Check vital fields and return true or activate warnings
     fileprivate func formValidate() -> Bool {
@@ -69,12 +73,23 @@ struct PreferencesView: View {
                 networkManager.port = portField
                 NSApplication.shared.keyWindow?.close()
                 NSApp.sendAction(#selector(AppDelegate.openSearchWindow), to: nil, from:nil)
-                //} TODO...
             }
         }
     }
     
+    // portFieldProxy Binding
+    var portFieldProxy:Binding<String> {
+        Binding<String>(
+            get: { self.portField },
+            set: {
+                if let value = NumberFormatter.port.number(from: $0) {
+                self.portField = value.stringValue
+            }
+        })
+    }
+    
     var body: some View {
+        
         VStack {
             HStack {
                 Text("Please insert the details for your QNAP system")
@@ -125,7 +140,7 @@ struct PreferencesView: View {
                 Section {
                     HStack {
                         Text("Port").frame(minWidth: 65 , alignment: .trailing)
-                        TextField("443", value: $portField, formatter: portFormatter).frame(width: 60)
+                        TextField("443", text: portFieldProxy).frame(width: 60)
                         Spacer()
                         Toggle(isOn: $rememberMe) {
                             Text("Remember Details")
@@ -138,43 +153,16 @@ struct PreferencesView: View {
                             Spacer()
                             Button(action: {
                                 if(self.formValidate()) {
-                                    self.networkManager.login(hostname: self.hostnameField, port: self.portField, username: self.usernameField, password: self.passwordField) { (LoginReturn, ReturnedError, HardError) in
-                                        if let LoginReturn = LoginReturn {
-                                            DispatchQueue.main.async {
-                                                self.networkManager.token = LoginReturn.qqsSid
-                                            }
-                                            self.connectionOutput = "User \(LoginReturn.userName) logged in successfully"
-                                        }
-                                        if let ReturnedError = ReturnedError {
-                                            self.connectionOutput = ReturnedError.error.message
-                                        }
-                                        if let HardError = HardError {
-                                            self.connectionOutput = HardError
-                                        }
-                                    }
+                                    self.networkManager.login(hostname: self.hostnameField, port: self.portField, username: self.usernameField, password: self.passwordField)
                                 }
                             }) {
                                 Text("Test")
                             }
                             Button(action: {
                                 if(self.formValidate()) {
-                                    self.networkManager.login(hostname: self.hostnameField, port: self.portField, username: self.usernameField, password: self.passwordField) { (LoginReturn, ReturnedError, HardError) in
-                                        if let LoginReturn = LoginReturn {
-                                            DispatchQueue.main.async {
-                                                self.networkManager.token = LoginReturn.qqsSid
-                                                self.save()
-                                            }
-                                            self.connectionOutput = "User \(LoginReturn.userName) logged in successfully"
-                                        }
-                                        if let ReturnedError = ReturnedError {
-                                            self.connectionOutput = ReturnedError.error.message
-                                        }
-                                        if let HardError = HardError {
-                                            self.connectionOutput = HardError
-                                        }
-                                    }
+                                    self.networkManager.login(hostname: self.hostnameField, port: self.portField, username: self.usernameField, password: self.passwordField)
+                                    self.save()
                                 }
-                                
                             }) {
                                 Text("Save")
                             }
@@ -183,12 +171,34 @@ struct PreferencesView: View {
                     }
                     
                 }
-                if (connectionOutput.isEmpty == false) {
+                if (networkManager.progressIndicator == true) {
+                    Section {
+                    VStack {
+                        HStack {
+                            Spacer()
+                                ProgressIndicatorView()
+                            Spacer()
+                            }
+                        }
+                    }.padding([.top, .leading, .trailing],10)
+                }
+                if (networkManager.displayError) {
                     Section {
                         VStack {
                             HStack {
                                 Spacer()
-                                Text(connectionOutput).fixedSize(horizontal: true, vertical: false)
+                                Text("\(networkManager.ErrorReturned!)").fixedSize(horizontal: true, vertical: false)
+                                Spacer()
+                            }
+                        }
+                    }.padding([.top, .leading, .trailing],10)
+                }
+                if (networkManager.displayLogin) {
+                    Section {
+                        VStack {
+                            HStack {
+                                Spacer()
+                                Text("\(networkManager.LoginReturned!.userName) logged in successfully.").fixedSize(horizontal: true, vertical: false)
                                 Spacer()
                             }
                         }
@@ -201,15 +211,6 @@ struct PreferencesView: View {
 }
 
 struct PreferencesView_Previews: PreviewProvider {
-    @State var hostnameField: String = UserDefaults.standard.string(forKey: "hostname") ?? ""
-    @State var hostnameInvalid:Bool = false
-    @State var usernameField: String = UserDefaults.standard.string(forKey: "username") ?? ""
-    @State var usernameInvalid:Bool = false
-    @State var passwordField: String = UserDefaults.standard.string(forKey: "password") ?? ""
-    @State var passwordInvalid:Bool = false
-    @State var portField: String = UserDefaults.standard.string(forKey: "port") ?? "443"
-    @State var rememberMe:Bool = true
-    @State var qqsSID: String = ""
     
     static var previews: some View {
         PreferencesView()

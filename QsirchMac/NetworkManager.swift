@@ -19,10 +19,11 @@ class NetworkManager: ObservableObject {
     @Published var DrivesList:DriveListReturn?
     @Published var drivesToDisplay:Bool = false
     
-    @Published var ErrorReturned:ErrorReturn?
+    @Published var ErrorReturned:String?
+    @Published var displayError:Bool = false
     
     @Published var LoginReturned:LoginReturn?
-    @Published var HardError:String?
+    @Published var displayLogin:Bool = false
     
     
     @Published var hostname:String { didSet { UserDefaults.standard.string(forKey: "hostname") } }
@@ -66,11 +67,14 @@ class NetworkManager: ObservableObject {
     
     
     // MARK: - Login Method
-    func login(hostname:String, port:String, username:String, password:String, completion: @escaping (LoginReturn?,ErrorReturn?,String?) ->() ) {
+    func login(hostname:String, port:String, username:String, password:String) {
+        DispatchQueue.main.async {
+            self.displayError = false
+            self.displayLogin = false
+            self.progressIndicator = true
+        }
         let semaphore = DispatchSemaphore(value: 1)
-        
         guard let loginURL = URL(string: "https://\(hostname):\(port)/qsirch/static/api/login") else { return }
-        
         guard let logoutURL = URL(string: "https://\(hostname):\(port)/qsirch/static/api/logout") else { return }
         
         DispatchQueue.global().async {
@@ -78,18 +82,18 @@ class NetworkManager: ObservableObject {
             semaphore.wait()
             var logoutrequest = URLRequest(url: logoutURL)
             logoutrequest.httpMethod = "GET"
-            let logouttask = URLSession.shared.dataTask(with: logoutURL) { _, response, error in
+            let logoutTask = URLSession.shared.dataTask(with: logoutURL) { _, _, error in
                 if let error = error {
-                    completion(nil,nil,error.localizedDescription)
-                }
-                guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
-                    completion(nil,nil,error?.localizedDescription)
-                    semaphore.signal()
+                    DispatchQueue.main.async {
+                        self.progressIndicator = false
+                        self.ErrorReturned = error.localizedDescription
+                        self.displayError = true
+                    }
                     return
                 }
                 semaphore.signal()
             }
-            logouttask.resume()
+            logoutTask.resume()
             //End Logout
             //Begin Login
             semaphore.wait()
@@ -99,33 +103,50 @@ class NetworkManager: ObservableObject {
             let encoder = JSONEncoder()
             let jsonData = try! encoder.encode(credentials)
             request.httpBody = jsonData
-
             // Set HTTP Request Header
             request.setValue("application/json", forHTTPHeaderField: "Accept")
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
+            let loginTask = URLSession.shared.dataTask(with: request) { (data, response, error) in
                 do {
-                    guard let data = data, let response = response else { return }
-                    let httpResponse = response as? HTTPURLResponse
-                    switch httpResponse!.statusCode as Int {
-                        case 200:
-                            let loginResponse = try JSONDecoder().decode(LoginReturn.self, from: data)
+                    if let error = error {
+                        DispatchQueue.main.async {
+                            self.ErrorReturned = error.localizedDescription
+                            self.progressIndicator = false
+                            self.displayError = true
+                        }
+                        return
+                    }
+                    if let response = response as? HTTPURLResponse, let data = data {
+                        if response.statusCode == 200 {
+                            let decodedData = try JSONDecoder().decode(LoginReturn.self, from: data)
                             DispatchQueue.main.async {
-                                self.token = loginResponse.qqsSid
+                                //self.token = decodedData.qqsSid <- might be able to just call this from the below!
+                                self.LoginReturned = decodedData
+                                self.progressIndicator = false
+                                self.displayLogin = true
                             }
-                            completion(loginResponse,nil,nil)
-                        case 400:
-                            let loginResponse = try JSONDecoder().decode(ErrorReturn.self, from: data)
-                            completion(nil,loginResponse,nil)
-                        default:
-                            completion(nil,nil,"Unknown Error")
+                        }
+                        if response.statusCode == 400 {
+                            let decodedData = try JSONDecoder().decode(ErrorReturn.self, from: data)
+                            DispatchQueue.main.async {
+                                self.ErrorReturned = decodedData.error.message
+                                self.progressIndicator = false
+                                self.displayError = true
+                            }
+                            return
+                        }
                     }
                 } catch {
-                    completion(nil,nil,error.localizedDescription)
+                    DispatchQueue.main.async {
+                        self.ErrorReturned = error.localizedDescription
+                        self.progressIndicator = false
+                        self.displayError = true
+                    }
+                    return
                 }
                 semaphore.signal()
             }
-            task.resume()
+            loginTask.resume()
             semaphore.wait()
             //End Login
             //Begin Drive Aquisition
@@ -134,28 +155,45 @@ class NetworkManager: ObservableObject {
             driveRequest.httpMethod = "GET"
             let driveTask = URLSession.shared.dataTask(with: driveRequest) { (data, response, error) in
                 do {
-                    guard let data = data else { return }
-                    
-                    let httpResponse = response as? HTTPURLResponse
-                    switch httpResponse!.statusCode as Int {
-                    case 200:
-                        let driveList = try! JSONDecoder().decode(DriveListReturn.self, from: data)
+                    if let error = error {
                         DispatchQueue.main.async {
-                            self.DrivesList = driveList
-                            if driveList.total > 0 {
-                                self.drivesToDisplay = true
-                            } else {
-                                self.drivesToDisplay = false
+                            self.ErrorReturned = error.localizedDescription
+                            self.progressIndicator = false
+                            self.displayError = true
+                        }
+                        return
+                    }
+                    if let response = response as? HTTPURLResponse, let data = data {
+                        if response.statusCode == 200 {
+                            let driveList = try! JSONDecoder().decode(DriveListReturn.self, from: data)
+                            DispatchQueue.main.async {
+                                self.DrivesList = driveList
+                                if driveList.total > 0 {
+                                    self.progressIndicator = false
+                                    self.drivesToDisplay = true
+                                } else {
+                                    self.progressIndicator = false
+                                    self.drivesToDisplay = false
+                                }
                             }
                         }
-                    case 400...500:
-                        let returnedErrors = try JSONDecoder().decode(ErrorReturn.self, from: data)
-                        self.ErrorReturned = returnedErrors
-                    default:
-                        break
+                        if response.statusCode == 401 {
+                            let decodedData = try JSONDecoder().decode(ErrorReturn.self, from: data)
+                            DispatchQueue.main.async {
+                                self.ErrorReturned = "Could not fetch available drives: \(decodedData.error.message)"
+                                self.progressIndicator = false
+                                self.displayError = true
+                            }
+                            return
+                        }
                     }
                 } catch {
-                    print(error)
+                    DispatchQueue.main.async {
+                        self.ErrorReturned = "JSON Error whilst fetching available drives."
+                        self.progressIndicator = false
+                        self.displayError = true
+                    }
+                    return
                 }
                 semaphore.signal()
             }
@@ -194,33 +232,46 @@ class NetworkManager: ObservableObject {
             // Make sure URL actually got constructed
             guard let searchURL = components.url else { return }
             let task = URLSession.shared.dataTask(with: searchURL) { (data, response, error) in
+                
                 do {
-                    guard let data = data else { return }
-                    let httpResponse = response as? HTTPURLResponse
-                    switch httpResponse!.statusCode as Int {
-                    case 200:
-                        let fileList = try! JSONDecoder().decode(SearchReturn.self, from: data)
+                    if let error = error {
                         DispatchQueue.main.async {
-                            self.FileList = fileList
-                            if self.FileList!.total > 0 {
-                                self.filesToDisplay = true
-                                self.progressIndicator = false
-                            } else {
-                                self.filesToDisplay = false
-                                self.progressIndicator = false
+                            self.ErrorReturned = error.localizedDescription
+                            self.displayError = true
+                        }
+                        return
+                    }
+                    if let response = response as? HTTPURLResponse, let data = data {
+                        if response.statusCode == 200 {
+                            let fileList = try JSONDecoder().decode(SearchReturn.self, from: data)
+                            DispatchQueue.main.async {
+                                self.FileList = fileList
+                                if self.FileList!.total > 0 {
+                                    self.filesToDisplay = true
+                                    self.progressIndicator = false
+                                } else {
+                                    self.filesToDisplay = false
+                                    self.progressIndicator = false
+                                }
                             }
                         }
-                    case 400...500:
-                        let errorReturns = try JSONDecoder().decode(ErrorReturn.self, from: data)
-                        DispatchQueue.main.async {
-                            self.ErrorReturned = errorReturns
-                            self.progressIndicator = false
+                        if response.statusCode >= 400 {
+                            let decodedData = try JSONDecoder().decode(ErrorReturn.self, from: data)
+                            DispatchQueue.main.async {
+                                self.ErrorReturned = decodedData.error.message
+                                self.progressIndicator = false
+                                self.displayError = true
+                            }
+                            return
                         }
-                    default: break
                     }
-                    
                 } catch {
-                    print(error)
+                    DispatchQueue.main.async {
+                        self.ErrorReturned = "JSON Error whilst decoding search results."
+                        self.progressIndicator = false
+                        self.displayError = true
+                    }
+                    return
                 }
             }
             task.resume()

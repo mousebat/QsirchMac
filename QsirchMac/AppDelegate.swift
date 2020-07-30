@@ -39,6 +39,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 defer: false)
             preferencesWindow.center()
             preferencesWindow.isReleasedWhenClosed = false
+            preferencesWindow.level = .floating
             preferencesWindow.contentView = NSHostingView(rootView: preferencesView.environmentObject(networkManager))
         }
         preferencesWindow.makeKeyAndOrderFront(nil)
@@ -65,7 +66,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     // Toggle Window Visibility
     @objc func toggleSearchWindow(sender: NSStatusBarButton) {
-        if self.searchWindow != nil {
+        var prefsOpen:Bool = false
+        if self.preferencesWindow != nil {
+            if self.preferencesWindow.isVisible {
+                prefsOpen = true
+            }
+        }
+        if self.searchWindow != nil && prefsOpen == false {
             if self.searchWindow.isVisible {
                 self.searchWindow.setIsVisible(false)
             } else {
@@ -74,6 +81,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self.searchWindow.contentViewController?.view.window?.becomeKey()
             }
         }
+       
+            
     }
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
@@ -91,23 +100,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let port = defaults.string(forKey: "port"),
             let username = defaults.string(forKey: "username"),
             let password = defaults.string(forKey: "password") {
-            networkManager.login(hostname: hostname, port: port, username: username, password: password) { (LoginReturn, ErrorReturned, HardError) in
-                if let ErrorReturned = ErrorReturned, let HardError = HardError {
-                    DispatchQueue.main.async {
-                        self.networkManager.HardError = HardError
-                        self.networkManager.ErrorReturned = ErrorReturned
-                        self.openPreferencesWindow()
-                    }
-                } else {
-                    DispatchQueue.main.async {
-                        self.openSearchWindow()
-                    }
+            networkManager.login(hostname: hostname, port: port, username: username, password: password)
+            if networkManager.ErrorReturned != nil {
+                DispatchQueue.main.async {
+                    self.openPreferencesWindow()
+                }
+            } else {
+                DispatchQueue.main.async {
+                    self.openSearchWindow()
                 }
             }
         } else {
             self.openPreferencesWindow()
         }
     }
+    
+    
     
     func applicationDidResignActive(_ notification: Notification) {
         if self.searchWindow != nil {

@@ -18,8 +18,6 @@ struct ResultsView: View {
     @State var alertHeader:String = ""
     @State var alertMessage:String = ""
     
-    
-    
     var body: some View {
         NavigationView {
             List (networkManager.FileList!.items, id: \.id) { file in
