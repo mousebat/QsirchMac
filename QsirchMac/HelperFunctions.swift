@@ -9,14 +9,29 @@
 import Foundation
 import SwiftUI
 
-// This extension removes the focus ring entirely.
+// MARK: - This removes the focus ring on all TextFields project wide.
 extension NSTextField {
     open override var focusRingType: NSFocusRingType {
         get { .none }
         set { }
     }
 }
-// Overide white table list
+
+// MARK: - Format Port Numbers
+extension NumberFormatter {
+    static var port: NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = NumberFormatter.Style.none
+        formatter.usesSignificantDigits = false
+        formatter.minimumIntegerDigits = 0
+        formatter.maximumIntegerDigits = 5
+        formatter.maximum = 65535
+        formatter.minimum = 1
+        return formatter
+    }
+}
+
+// MARK: - Overide List Background
 extension NSTableView {
     open override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
@@ -27,6 +42,7 @@ extension NSTableView {
     }
 }
 
+// MARK: - Adds Visual Effects Library to Views
 struct VisualEffectView: NSViewRepresentable
 {
     var material: NSVisualEffectView.Material
@@ -46,7 +62,7 @@ struct VisualEffectView: NSViewRepresentable
     }
 }
 
-// Returns tuple with both URL and String
+// MARK: - Returns tuple with both URL and String
 func pathBuilder(path:String, name:String, ext:String?) -> (String?, URL) {
     if let ext = ext {
         var returnURL = URL(string: "/Volumes/")!.appendingPathComponent(path).appendingPathComponent(name)
@@ -58,7 +74,7 @@ func pathBuilder(path:String, name:String, ext:String?) -> (String?, URL) {
     }
 }
 
-// Returns NSImage for icon at path
+// MARK: - Returns NSImage for icon at path
 func iconGrabber(path:String, name:String, ext:String?, width:Int, height:Int) -> NSImage {
     let builtPath = pathBuilder(path: path, name: name, ext: ext)
     let rep = NSWorkspace.shared.icon(forFile: builtPath.0!).bestRepresentation(for: NSRect(x: 0, y: 0, width: width, height: height), context: nil, hints: nil)
@@ -66,7 +82,8 @@ func iconGrabber(path:String, name:String, ext:String?, width:Int, height:Int) -
     image.addRepresentation(rep!)
     return image
 }
-// Returns true if drive mounted for path
+
+// MARK: - Returns true if drive mounted for path
 func checkDriveMounted(path:String) -> Bool {
     //let fullPath = URL(string: path)
     let split = path.components(separatedBy: "/")
@@ -88,6 +105,8 @@ func checkDriveMounted(path:String) -> Bool {
         return false
     }
 }
+
+// MARK: - Formats Bytes to Human Readable
 func formatBytes(bytes:Int) -> String {
         let formatter = ByteCountFormatter()
         formatter.allowedUnits = .useAll

@@ -46,8 +46,7 @@
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="kCx-OE-vgT"/>
-                                        <menuItem title="Quit QsirchMac" id="4sb-4s-VLi">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                        <menuItem title="Quit QsirchMac" keyEquivalent="q" id="4sb-4s-VLi">
                                             <connections>
                                                 <action selector="terminate:" target="Ady-hI-5gd" id="Te7-pn-YzF"/>
                                             </connections>

@@ -10,18 +10,21 @@ import Foundation
 import Combine
 
 class NetworkManager: ObservableObject {
-    
+    // File List Object and Display Switch
     @Published var FileList:SearchReturn?
-    @Published var filesToDisplay:Bool = false
-    
+    @Published var displayFiles:Bool = false
+    // Progress Indicator used Project Wide
     @Published var progressIndicator:Bool = false
-    
+    // Drive List Object with Display Switch
     @Published var DrivesList:DriveListReturn?
-    @Published var drivesToDisplay:Bool = false
-    
+    @Published var DrivesListFiltered:[Drive]?
+    @Published var displayDrives:Bool = false
+    // Exluded List
+    private var excludedList:ExcludedReturn?
+    // Error Returned String with Display Switch
     @Published var ErrorReturned:String?
     @Published var displayError:Bool = false
-    
+    // Login Returned Object with Display Switch
     @Published var LoginReturned:LoginReturn?
     @Published var displayLogin:Bool = false
     
@@ -51,20 +54,13 @@ class NetworkManager: ObservableObject {
             .removeDuplicates()
             .debounce(for: 0.8, scheduler: DispatchQueue.main)
             .sink { searchText in
-                self.search(searchstring: self.searchField,
-                            path: self.drive,
-                            results: self.results,
-                            sortby: self.sortby,
-                            sortdir: self.sortdir)
+                self.search()
             }
         )
-        
     }
     deinit {
         cancellable?.cancel()
     }
-    
-    
     
     // MARK: - Login Method
     func login(hostname:String, port:String, username:String, password:String) {
@@ -147,11 +143,52 @@ class NetworkManager: ObservableObject {
                 semaphore.signal()
             }
             loginTask.resume()
-            semaphore.wait()
             //End Login
+            //Begin Exclusion Aquisition
+            semaphore.wait()
+            guard let excludedURL = URL(string: "https://\(hostname):\(port)/qsirch/static/api/setting/exclude-dirs") else { return }
+            var excludedRequest = URLRequest(url: excludedURL)
+            excludedRequest.httpMethod = "GET"
+            let excludedTask = URLSession.shared.dataTask(with: excludedRequest) { (data, response, error) in
+                do {
+                    if let error = error {
+                        DispatchQueue.main.async {
+                            self.ErrorReturned = error.localizedDescription
+                            self.progressIndicator = false
+                            self.displayError = true
+                        }
+                        return
+                    }
+                    if let response = response as? HTTPURLResponse, let data = data {
+                        if response.statusCode == 200 {
+                            self.excludedList = try! JSONDecoder().decode(ExcludedReturn.self, from: data)
+                        }
+                        if response.statusCode >= 400 {
+                            let decodedData = try JSONDecoder().decode(ErrorReturn.self, from: data)
+                            DispatchQueue.main.async {
+                                self.ErrorReturned = "Could not fetch excluded drives: \(decodedData.error.message)"
+                                self.progressIndicator = false
+                                self.displayError = true
+                            }
+                            return
+                        }
+                    }
+                } catch {
+                    DispatchQueue.main.async {
+                        self.ErrorReturned = "JSON Error whilst fetching excluded drives."
+                        self.progressIndicator = false
+                        self.displayError = true
+                    }
+                    return
+                }
+                semaphore.signal()
+            }
+            excludedTask.resume()
+            //End Exclusion
             //Begin Drive Aquisition
-            guard let listDirURL = URL(string: "https://\(hostname):\(port)/qsirch/static/api/list-dirs") else { return }
-            var driveRequest = URLRequest(url: listDirURL)
+            semaphore.wait()
+            guard let driveListURL = URL(string: "https://\(hostname):\(port)/qsirch/static/api/list-dirs") else { return }
+            var driveRequest = URLRequest(url: driveListURL)
             driveRequest.httpMethod = "GET"
             let driveTask = URLSession.shared.dataTask(with: driveRequest) { (data, response, error) in
                 do {
@@ -167,17 +204,19 @@ class NetworkManager: ObservableObject {
                         if response.statusCode == 200 {
                             let driveList = try! JSONDecoder().decode(DriveListReturn.self, from: data)
                             DispatchQueue.main.async {
-                                self.DrivesList = driveList
+                                self.DrivesListFiltered = driveList.items.filter {
+                                    excluded in !self.excludedList!.items.contains(where: { $0.path.replacingOccurrences(of: "/", with: "") == excluded.name })
+                                }
                                 if driveList.total > 0 {
                                     self.progressIndicator = false
-                                    self.drivesToDisplay = true
+                                    self.displayDrives = true
                                 } else {
                                     self.progressIndicator = false
-                                    self.drivesToDisplay = false
+                                    self.displayDrives = false
                                 }
                             }
                         }
-                        if response.statusCode >= 401 {
+                        if response.statusCode >= 400 {
                             let decodedData = try JSONDecoder().decode(ErrorReturn.self, from: data)
                             DispatchQueue.main.async {
                                 self.ErrorReturned = "Could not fetch available drives: \(decodedData.error.message)"
@@ -201,26 +240,24 @@ class NetworkManager: ObservableObject {
          }
     }
     // MARK: - Search Method
-    func search(searchstring:String, path:String, results:String, sortby:String, sortdir:String) {
-        // have to check token exists before search because @published fires automatically gains willSet so it fires on init.
-        // Is there a way to check the token exists before publishing? needs research cos the if loop is bad juju as it can't have an else statement.
-        self.filesToDisplay = false
-        self.displayError = false
-        if (self.LoginReturned?.qqsSid != "" && self.searchField != "") {
-            self.filesToDisplay = false
-            self.progressIndicator = true
+    func search() {
+        displayFiles = false
+        displayError = false
+        if (LoginReturned?.qqsSid != "" && searchField != "") {
+            displayFiles = false
+            progressIndicator = true
             //Safely Construct URL
             var components = URLComponents()
             components.scheme = "https"
-            components.host = self.hostname
-            components.port = Int(self.port)
+            components.host = hostname
+            components.port = Int(port)
             components.path = "/qsirch/static/api/search"
             components.queryItems = [
-                URLQueryItem(name: "q", value: searchstring.stringByAddingPercentEncodingForFormData(plusForSpace: true)),
+                URLQueryItem(name: "q", value: searchField.stringByAddingPercentEncodingForFormData(plusForSpace: true)),
                 URLQueryItem(name: "auth_token", value: self.LoginReturned?.qqsSid)
             ]
-            if (path != "All") {
-                components.queryItems!.append(URLQueryItem(name: "path", value: path))
+            if (drive != "All") {
+                components.queryItems!.append(URLQueryItem(name: "path", value: drive))
             }
             components.queryItems!.append(URLQueryItem(name: "limit", value: results))
             components.queryItems!.append(URLQueryItem(name: "sort_by", value: sortby))
@@ -233,7 +270,6 @@ class NetworkManager: ObservableObject {
             // Make sure URL actually got constructed
             guard let searchURL = components.url else { return }
             let task = URLSession.shared.dataTask(with: searchURL) { (data, response, error) in
-                
                 do {
                     if let error = error {
                         DispatchQueue.main.async {
@@ -249,10 +285,10 @@ class NetworkManager: ObservableObject {
                             DispatchQueue.main.async {
                                 self.FileList = fileList
                                 if self.FileList!.total > 0 {
-                                    self.filesToDisplay = true
+                                    self.displayFiles = true
                                     self.progressIndicator = false
                                 } else {
-                                    self.filesToDisplay = false
+                                    self.displayFiles = false
                                     self.progressIndicator = false
                                 }
                             }

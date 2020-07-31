@@ -6,7 +6,7 @@
 //  Copyright © 2020 Caters. All rights reserved.
 //
 
-// When upgrade to OS11 use the new view instead of this!
+// When upgrade to OS11 we can ditch this and use ProgressView!
 
 import SwiftUI
 

@@ -46,3 +46,4 @@ struct FileRowView_Previews: PreviewProvider {
         FileRowView(fileRow: searchItem)
     }
 }
+

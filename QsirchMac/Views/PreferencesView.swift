@@ -8,20 +8,6 @@
 
 import SwiftUI
 
-
-extension NumberFormatter {
-    static var port: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = NumberFormatter.Style.none
-        formatter.usesSignificantDigits = false
-        formatter.minimumIntegerDigits = 0
-        formatter.maximumIntegerDigits = 5
-        formatter.maximum = 65535
-        formatter.minimum = 1
-        return formatter
-    }
-}
-
 struct PreferencesView: View {
     
     @EnvironmentObject var networkManager: NetworkManager
@@ -35,9 +21,7 @@ struct PreferencesView: View {
     @State var portField:String = UserDefaults.standard.string(forKey: "port") ?? ""
     @State var rememberMe:Bool = true
     
-    
-    
-    // Check vital fields and return true or activate warnings
+    // Check required fields and return true or activate warnings
     fileprivate func formValidate() -> Bool {
         var validity:Bool = true
         if hostnameField.isEmpty { hostnameInvalid = true } else { hostnameInvalid = false }
@@ -47,6 +31,7 @@ struct PreferencesView: View {
         if (hostnameField.isEmpty || usernameField.isEmpty || passwordField.isEmpty) { validity = false }
         return validity
     }
+    // Save login details
     fileprivate func save() {
         if formValidate(){
             if (rememberMe){
@@ -76,8 +61,7 @@ struct PreferencesView: View {
             }
         }
     }
-    
-    // portFieldProxy Binding
+    // portFieldProxy Binding - Because the default formatter function of text field does not update the @State var correctly.
     var portFieldProxy:Binding<String> {
         Binding<String>(
             get: { self.portField },
@@ -89,7 +73,6 @@ struct PreferencesView: View {
     }
     
     var body: some View {
-        
         VStack {
             HStack {
                 Text("Please insert the details for your QNAP system")

@@ -15,10 +15,10 @@ struct SearchView: View {
     var body: some View {
         VStack(spacing: 0) {
             SearchBarView().background(Color(.windowBackgroundColor)).cornerRadius(0)//corner radius override - stops the weird double corner at the bottom of search bar!
-            if networkManager.filesToDisplay {
+            if networkManager.displayFiles {
                 ResultsView().background(VisualEffectView(material: NSVisualEffectView.Material.popover, blendingMode: NSVisualEffectView.BlendingMode.behindWindow))
             }
-            if (networkManager.ErrorReturned != nil) {
+            if (networkManager.displayError) {
                 HStack {
                     Text("\(networkManager.ErrorReturned!)").font(.headline)
                 }.padding().background(VisualEffectView(material: NSVisualEffectView.Material.popover, blendingMode: NSVisualEffectView.BlendingMode.behindWindow))
