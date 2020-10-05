@@ -18,7 +18,7 @@ The search dialog box will then appear and list the available share points for t
 You don't have to be connected to any share points in Finder to display results but you will not receive any nice Quicklook generated thumbnails (they will show as no entry symbols) and you obviously won't be able to reveal the items in Finder.
 
 ## HISTORY
-I bought my QNAP NAS to replace an ageing MacPro, stuffed to the brim with SATA drives running OS X Server.  We were fast running out of storage and rather than just buy new larger drives I decided to go with a NAS that was neat enough to put in a shelf in our network cabinet.  The Spotlight compatibility was the main selling point, as my staff use Spotlight on a daily basis to cut through the millions of files we store, so you can imagine my disappointment when it did not work as advertised.  I waited about 3 months with an open support ticket and after no solution appeared I created QsirchMac to bridge the gap.
+I bought my QNAP NAS to replace an ageing MacPro, stuffed to the brim with SATA drives running OS X Server.  We were fast running out of storage and rather than just buy new larger drives I decided to go with a NAS that was neat enough to put in a shelf in our network cabinet.  The Spotlight compatibility was the main selling point. My staff use Spotlight on a daily basis to cut through the millions of files we store, so you can imagine my disappointment when it did not work as advertised.  I waited about 3 months with an open support ticket and after no solution appeared I created QsirchMac to bridge the gap.
 
 I hope you enjoy using it, if you want to buy me a pint feel free here:
 paypal.me/qsirchmac
