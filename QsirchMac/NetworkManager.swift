@@ -301,6 +301,7 @@ class NetworkManager: ObservableObject {
                                 self.displayError = true
                             }
                             return
+                            // TODO: - Check if auth token timed out? Open preferences window maybe?
                         }
                     }
                 } catch {

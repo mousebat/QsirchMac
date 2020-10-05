@@ -85,32 +85,37 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        
-        // Create status bar item
-        self.statusBarItem = NSStatusBar.system.statusItem(withLength: CGFloat(NSStatusItem.variableLength))
-        if let button = self.statusBarItem.button {
-            button.image = NSImage(named: "statusbaricon")
-            button.action = #selector(toggleSearchWindow(sender:))
-        }
-        
-        let defaults = UserDefaults.standard
-        
-        if let hostname = defaults.string(forKey: "hostname"),
-            let port = defaults.string(forKey: "port"),
-            let username = defaults.string(forKey: "username"),
-            let password = defaults.string(forKey: "password") {
-            networkManager.login(hostname: hostname, port: port, username: username, password: password)
-            if networkManager.ErrorReturned != nil {
-                DispatchQueue.main.async {
-                    self.openPreferencesWindow()
+        let osVersion = ProcessInfo.processInfo.operatingSystemVersion
+        if osVersion.minorVersion == 15 {
+            // Create status bar item
+            self.statusBarItem = NSStatusBar.system.statusItem(withLength: CGFloat(NSStatusItem.variableLength))
+            if let button = self.statusBarItem.button {
+                button.image = NSImage(named: "QsirchStatusBarIcon")
+                button.action = #selector(toggleSearchWindow(sender:))
+            }
+            
+            let defaults = UserDefaults.standard
+            
+            if let hostname = defaults.string(forKey: "hostname"),
+                let port = defaults.string(forKey: "port"),
+                let username = defaults.string(forKey: "username"),
+                let password = defaults.string(forKey: "password") {
+                networkManager.login(hostname: hostname, port: port, username: username, password: password)
+                if networkManager.ErrorReturned != nil {
+                    DispatchQueue.main.async {
+                        self.openPreferencesWindow()
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        self.openSearchWindow()
+                    }
                 }
             } else {
-                DispatchQueue.main.async {
-                    self.openSearchWindow()
-                }
+                self.openPreferencesWindow()
             }
         } else {
-            self.openPreferencesWindow()
+            //hard exit if not catalina
+            exit(1)
         }
     }
     
