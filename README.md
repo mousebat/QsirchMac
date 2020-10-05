@@ -22,4 +22,4 @@ I bought my QNAP NAS to replace an ageing MacPro, stuffed to the brim with SATA 
 
 I hope you enjoy using it, if you want to buy me a pint feel free here:
 
-paypal.me/qsirchmac
+https://paypal.me/qsirchmac
