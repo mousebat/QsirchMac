@@ -86,7 +86,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         let osVersion = ProcessInfo.processInfo.operatingSystemVersion
-        if (osVersion.minorVersion == 15 || osVersion.minorVersion == 14) {
+        if osVersion.minorVersion == 15 {
             // Create status bar item
             self.statusBarItem = NSStatusBar.system.statusItem(withLength: CGFloat(NSStatusItem.variableLength))
             if let button = self.statusBarItem.button {
